@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>Dispenser Gatto V6</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+    
+    <style>
+        :root { --p: #007bff; --s: #28a745; --d: #dc3545; --w: #ffc107; --bg: #f4f6f8; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 500px; margin: 0 auto; background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        
+        h2 { border-bottom: 2px solid #eee; padding-bottom: 10px; color: #555; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 30px;}
+        .big-stat { font-size: 2.5rem; font-weight: 800; color: var(--p); display: block; text-align: center; }
+        .sub-stat { text-align: center; display: block; color: #777; font-size: 0.9rem; }
+
+        /* Timer Box */
+        .timer-box {
+            background: #2d3436; color: white; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px; transition: background 0.3s;
+        }
+        .timer-display { font-family: monospace; font-size: 2rem; color: #00cec9; margin: 10px 0; }
+        .timer-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.7; }
+        .mode-badge { padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 0.8rem; }
+        .mode-on { background: var(--s); color: white; }
+        .mode-off { background: var(--d); color: white; }
+
+        .btn-group { display: flex; gap: 5px; margin-top: 10px; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: transform 0.1s; }
+        button:active { transform: scale(0.95); }
+        .btn-on { background: rgba(255,255,255,0.2); color: white; }
+        .btn-off { background: rgba(255,75,75,0.3); color: white; }
+        .btn-main { background: var(--s); color: white; font-size: 1.2rem; width: 100%; margin-top: 10px; box-shadow: 0 4px 6px rgba(40, 167, 69, 0.3); }
+
+        /* Inputs */
+        .input-box { background: #fff; border: 1px solid #eee; padding: 15px; border-radius: 10px; transition: border-color 0.3s; }
+        .input-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+        input[type="time"] { padding: 8px; border: 1px solid #ddd; border-radius: 5px; width: 60%; font-size: 1.1rem; }
+        .input-btn { width: auto; background: var(--p); color: white; padding: 10px 20px; }
+        
+        /* Animazione Errore */
+        .error-border { border-color: var(--d) !important; animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        .error-text { color: var(--d); font-weight: bold; font-size: 0.9rem; margin-top: 10px; display: none; text-align: center;}
+        
+        @keyframes shake { 
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        .debug-area { background: #fff0f0; padding: 15px; border-radius: 10px; border: 1px solid #ffcccc; margin-top: 20px;}
+        .log { background: #eee; padding: 10px; font-family: monospace; font-size: 0.75rem; color: #555; height: 80px; overflow-y: auto; border-radius: 5px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div style="text-align: center; margin-bottom: 20px;">
+        <span id="conn-dot" style="height:10px; width:10px; background:grey; border-radius:50%; display:inline-block;"></span>
+        <span id="conn-text">Connessione...</span>
+    </div>
+
+    <!-- BOX TIMER E AUTOMAZIONE -->
+    <div id="timer-box-ui" class="timer-box">
+        <div class="timer-label">STATO AUTOMATICO</div>
+        <div style="margin-top: 5px;">
+            <span id="mode-badge" class="mode-badge mode-on">ATTIVO</span>
+        </div>
+        
+        <div id="countdown" class="timer-display">--:--:--</div>
+        <div id="countdown-label" style="font-size: 0.8rem; color: #aaa;">Sempre attivo</div>
+
+        <div class="btn-group">
+            <button class="btn-on" onclick="setMode('ON_ALWAYS')">Sempre ON</button>
+            <button class="btn-off" onclick="setMode('OFF_TOMORROW')">OFF da Domani</button>
+            <button class="btn-off" style="background: rgba(255,0,0,0.5);" onclick="setMode('OFF_NOW')">OFF Ora</button>
+        </div>
+    </div>
+
+    <!-- STATISTICHE -->
+    <div>
+        <span class="sub-stat">Pasti serviti oggi</span>
+        <span id="stat-pasti" class="big-stat">-</span>
+        <span id="info-porzione" class="sub-stat" style="color: var(--p); font-weight: bold;">Calcolo porzione...</span>
+    </div>
+
+    <!-- AZIONE -->
+    <button id="btn-eroga" class="btn-main" onclick="inviaComando('EROGA')" disabled>EROGA PASTO</button>
+
+    <!-- ORARI -->
+    <h2>Orari (Automatici)</h2>
+    <div id="orari-box" class="input-box">
+        <div class="input-row"><label>Pasto 1</label> <input type="time" id="t1"></div>
+        <div class="input-row"><label>Pasto 2</label> <input type="time" id="t2"></div>
+        <div class="input-row"><label>Pasto 3</label> <input type="time" id="t3"></div>
+        
+        <!-- MESSAGGIO ERRORE INTEGRATO -->
+        <div id="error-msg" class="error-text"></div>
+
+        <div style="text-align: right; margin-top: 15px;">
+            <button class="input-btn" onclick="salvaOrari()">Salva Configurazione</button>
+        </div>
+        <p style="font-size: 0.8rem; color: #888; margin-top: 5px;">* Lascia vuoto un orario per non usarlo.</p>
+    </div>
+
+    <!-- DEBUG -->
+    <div class="debug-area">
+        <div style="font-weight: bold; color: var(--d); margin-bottom: 5px;">🔧 Debug / Manuale</div>
+        <div style="display: flex; gap: 10px;">
+            <input type="number" id="debug-steps" placeholder="Passi" style="width: 100px; padding: 8px;">
+            <button style="background: var(--d); color: white;" onclick="inviaDebug()">Muovi Motore</button>
+        </div>
+    </div>
+
+    <div class="log" id="console">Log sistema...</div>
+</div>
+
+<script>
+    // --- CREDENZIALI ---
+    const mqttHost = "4c412304f01a4a51a191fe4c3d31daa9.s1.eu.hivemq.cloud"; 
+    const mqttPort = 8884;
+    const mqttUser = "Nicola";
+    const mqttPass = "k2gyf!_X95b9dUt";
+    
+    // TOPIC
+    const topicComando = "dispenser/comando";
+    const topicSetOrari = "dispenser/set/orari";
+    const topicSetMode = "dispenser/set/mode";
+    const topicDati = "dispenser/dati";
+
+    // VARIABILI GLOBALI
+    let espTimeLeft = 0; 
+    let jsTimer = null;  
+
+    // CLIENT
+    const client = new Paho.MQTT.Client(mqttHost, Number(mqttPort), "Web-" + Date.now());
+    client.onConnectionLost = (resp) => { updateStatus(false); log("Persa: " + resp.errorMessage); };
+    client.onMessageArrived = onMessage;
+
+    client.connect({
+        useSSL: true, userName: mqttUser, password: mqttPass,
+        onSuccess: () => { updateStatus(true); client.subscribe(topicDati); log("Connesso!"); },
+        onFailure: (m) => { updateStatus(false); log("Err: " + m.errorMessage); }
+    });
+
+    // --- RICEZIONE DATI ---
+    function onMessage(msg) {
+        if(msg.destinationName === topicDati) {
+            try {
+                const d = JSON.parse(msg.payloadString);
+                
+                // 1. Stats
+                document.getElementById("stat-pasti").innerText = d.pastiOggi;
+                
+                // Info porzione
+                const infoText = "Porzione attuale: 1/" + d.divisoreCalcolato + " della razione";
+                if(document.getElementById("info-porzione").innerText !== infoText) {
+                    document.getElementById("info-porzione").innerText = infoText;
+                }
+
+                // 2. Orari (solo se non li sto scrivendo io)
+                if(document.activeElement.tagName !== "INPUT") {
+                    document.getElementById("t1").value = d.orario1;
+                    document.getElementById("t2").value = d.orario2;
+                    document.getElementById("t3").value = d.orario3;
+                }
+
+                // 3. Gestione TIMER e AUTO MODE
+                updateTimerUI(d.autoActive, d.timeLeft, false);
+
+            } catch(e) { console.error(e); }
+        }
+    }
+
+    // --- UI UPDATE LOGIC ---
+    function updateTimerUI(isActive, secondsLeft, isOptimistic) {
+        const badge = document.getElementById("mode-badge");
+        const display = document.getElementById("countdown");
+        const label = document.getElementById("countdown-label");
+        const box = document.getElementById("timer-box-ui");
+
+        if (jsTimer) clearInterval(jsTimer);
+
+        if (!isActive) {
+            badge.className = "mode-badge mode-off";
+            badge.innerText = "MANUALE (Auto OFF)";
+            display.innerText = "OFF";
+            display.style.color = "#ff7675";
+            label.innerText = "Nessun orario programmato";
+            box.style.background = "#2d3436";
+        } else {
+            badge.className = "mode-badge mode-on";
+            badge.innerText = "AUTOMATICO ATTIVO";
+            box.style.background = "#2d3436";
+            
+            if (secondsLeft <= 0 && !isOptimistic) {
+                display.innerText = "∞"; 
+                display.style.color = "#00cec9";
+                label.innerText = "Attivo indefinitamente";
+            } else {
+                espTimeLeft = secondsLeft;
+                if (isOptimistic && secondsLeft === 99999) {
+                    display.innerText = "Calcolo...";
+                    label.innerText = "Sincronizzazione...";
+                } else {
+                    label.innerText = "Tempo rimanente automazione";
+                    tickTock(); 
+                    jsTimer = setInterval(tickTock, 1000);
+                }
+            }
+        }
+    }
+
+    function tickTock() {
+        if (espTimeLeft <= 0) {
+            if(espTimeLeft !== -999) document.getElementById("countdown").innerText = "00:00:00"; 
+            return;
+        }
+        espTimeLeft--; 
+        const h = Math.floor(espTimeLeft / 3600);
+        const m = Math.floor((espTimeLeft % 3600) / 60);
+        const s = espTimeLeft % 60;
+        document.getElementById("countdown").innerText = 
+            `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+    }
+
+    // --- COMANDI ---
+    function setMode(mode) {
+        if(mode === 'OFF_NOW') updateTimerUI(false, 0, true);
+        else if (mode === 'ON_ALWAYS') {
+            updateTimerUI(true, 0, true);
+            document.getElementById("countdown").innerText = "∞"; 
+            document.getElementById("countdown").style.color = "#00cec9";
+        } else if (mode === 'OFF_TOMORROW') updateTimerUI(true, 99999, true);
+
+        send(topicSetMode, mode);
+        log("Set Mode: " + mode);
+    }
+
+    function inviaComando(cmd) { send(topicComando, cmd); }
+    
+    function inviaDebug() {
+        const s = document.getElementById("debug-steps").value;
+        if(s>0) send(topicComando, "DEBUG:"+s);
+    }
+
+    function salvaOrari() {
+        const v1 = document.getElementById("t1").value;
+        const v2 = document.getElementById("t2").value;
+        const v3 = document.getElementById("t3").value;
+        const box = document.getElementById("orari-box");
+        const errorDiv = document.getElementById("error-msg");
+
+        // RESET ERRORI
+        errorDiv.style.display = "none";
+        errorDiv.innerText = "";
+
+        // VALIDAZIONE 1: TUTTI NULLI
+        if (!v1 && !v2 && !v3) {
+            showError("⚠️ Errore: Non puoi lasciare tutti gli orari vuoti!", box, errorDiv);
+            return;
+        }
+
+        // VALIDAZIONE 2: DUPLICATI
+        const orariValidi = [v1, v2, v3].filter(o => o !== "");
+        const unici = new Set(orariValidi);
+        
+        if (orariValidi.length !== unici.size) {
+            showError("⚠️ Errore: Hai inserito orari duplicati!", box, errorDiv);
+            return;
+        }
+
+        // FEEDBACK ISTANTANEO
+        document.getElementById("info-porzione").innerText = "Porzione (Anteprima): 1/" + orariValidi.length + " della razione";
+        log("Configurazione valida. Salvataggio...");
+
+        // INVIO
+        const p1 = v1 || "--:--";
+        const p2 = v2 || "--:--";
+        const p3 = v3 || "--:--";
+        send(topicSetOrari, `${p1},${p2},${p3}`);
+    }
+
+    function showError(msg, boxElement, textElement) {
+        textElement.innerText = msg;
+        textElement.style.display = "block";
+        
+        boxElement.classList.remove("error-border"); 
+        void boxElement.offsetWidth; // Force reflow
+        boxElement.classList.add("error-border");
+    }
+
+    // --- UTILS ---
+    function send(t, m) {
+        if(client.isConnected()) {
+            const msg = new Paho.MQTT.Message(m);
+            msg.destinationName = t;
+            client.send(msg);
+        } else {
+            alert("Non connesso!");
+        }
+    }
+
+    function updateStatus(ok) {
+        const dot = document.getElementById("conn-dot");
+        const txt = document.getElementById("conn-text");
+        const btn = document.getElementById("btn-eroga");
+        if(ok) {
+            dot.style.background = "#28a745"; txt.innerText = "Online"; btn.disabled = false;
+        } else {
+            dot.style.background = "red"; txt.innerText = "Offline"; btn.disabled = true;
+        }
+    }
+    function log(m) { document.getElementById("console").innerHTML = "> "+m; }
+</script>
+</body>
+</html>
