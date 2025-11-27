@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>Dispenser Gatto V8</title>
+    <title>Dispenser Gatto V9</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
     
     <style>
@@ -42,11 +42,9 @@
         .input-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
         input[type="time"] { padding: 8px; border: 1px solid #ddd; border-radius: 5px; width: 60%; font-size: 1.1rem; }
         
-        /* Debug Area */
         .debug-area { background: #fff0f0; padding: 15px; border-radius: 10px; border: 1px solid #ffcccc; margin-top: 30px;}
         input[type="number"] { padding: 8px; border: 1px solid #ddd; border-radius: 5px; }
 
-        /* Errori */
         .error-border { border-color: var(--d) !important; animation: shake 0.4s; }
         .error-text { color: var(--d); font-weight: bold; font-size: 0.9rem; margin-top: 10px; display: none; text-align: center;}
         @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
@@ -62,7 +60,7 @@
         <span id="conn-text">Connessione...</span>
     </div>
 
-    <!-- 1. BARRA CIBO GIORNALIERO -->
+    <!-- 1. BARRA CIBO -->
     <div>
         <span style="font-weight: bold; color: #555;">Razione consumata oggi</span>
         <div class="progress-container">
@@ -78,20 +76,10 @@
     <!-- 2. EROGAZIONE MANUALE -->
     <div class="manual-box">
         <label style="font-size: 0.9rem; color: #555; text-transform: uppercase;">Erogazione Manuale</label>
-        
         <input type="range" id="manual-slider" min="1" max="3" value="1" step="1" oninput="updateSliderLabel()">
-        
-        <div class="range-values">
-            <span>Intera (1)</span>
-            <span>Metà (2)</span>
-            <span>Un Terzo (3)</span>
-        </div>
-        
+        <div class="range-values"><span>Intera (1)</span><span>Metà (2)</span><span>Un Terzo (3)</span></div>
         <span id="slider-desc" class="slider-label">Razione Intera</span>
-        
-        <button id="btn-eroga" class="btn-main" onclick="inviaComandoManuale()" disabled>
-            🍖 EROGA ORA
-        </button>
+        <button id="btn-eroga" class="btn-main" onclick="inviaComandoManuale()" disabled>🍖 EROGA ORA</button>
     </div>
 
     <!-- 3. AUTOMAZIONE -->
@@ -101,9 +89,7 @@
             <span style="font-size: 0.8rem; opacity: 0.8;">STATO</span>
             <span id="mode-badge" class="mode-badge mode-on">ATTIVO</span>
         </div>
-        
         <div id="countdown" class="timer-display">--:--:--</div>
-        
         <div class="btn-group">
             <button class="btn-on" onclick="setMode('ON_ALWAYS')">Sempre ON</button>
             <button class="btn-off" onclick="setMode('OFF_TOMORROW')">OFF Domani</button>
@@ -113,7 +99,7 @@
 
     <!-- 4. ORARI -->
     <div id="orari-box" class="input-box">
-        <div style="margin-bottom: 10px; font-weight: bold; color: #555;">Imposta Orari</div>
+        <div style="margin-bottom: 10px; font-weight: bold; color: #555;">Imposta Orari (In Ordine)</div>
         <div class="input-row"><label>Pasto 1</label> <input type="time" id="t1"></div>
         <div class="input-row"><label>Pasto 2</label> <input type="time" id="t2"></div>
         <div class="input-row"><label>Pasto 3</label> <input type="time" id="t3"></div>
@@ -123,27 +109,24 @@
         </div>
     </div>
 
-    <!-- 5. DEBUG / MANUTENZIONE -->
+    <!-- 5. DEBUG -->
     <div class="debug-area">
         <div style="font-weight: bold; color: var(--d); margin-bottom: 10px;">🔧 Debug / Sblocco</div>
         <div style="display: flex; gap: 10px;">
-            <input type="number" id="debug-steps" placeholder="Passi (es. 200)" style="width: 100px;">
+            <input type="number" id="debug-steps" placeholder="Passi" style="width: 100px;">
             <button style="background: var(--d); color: white; flex: 1;" onclick="inviaDebug()">Muovi Motore</button>
         </div>
-        <p style="font-size: 0.7rem; color: #d63384; margin-top: 5px;">*Questi movimenti non aumentano la barra della razione consumata.</p>
     </div>
 
     <div class="log" id="console">Log sistema...</div>
 </div>
 
 <script>
-    // CREDENZIALI
     const mqttHost = "4c412304f01a4a51a191fe4c3d31daa9.s1.eu.hivemq.cloud"; 
     const mqttPort = 8884;
     const mqttUser = "Nicola";
     const mqttPass = "k2gyf!_X95b9dUt";
     
-    // TOPIC
     const topicComando = "dispenser/comando";
     const topicSetOrari = "dispenser/set/orari";
     const topicSetMode = "dispenser/set/mode";
@@ -165,20 +148,13 @@
         if(msg.destinationName === topicDati) {
             try {
                 const d = JSON.parse(msg.payloadString);
-                
-                // 1. UPDATE BARRA PROGRESSO
                 updateProgressBar(d.percentualeOggi);
-
-                // 2. ORARI
                 if(document.activeElement.tagName !== "INPUT") {
                     document.getElementById("t1").value = d.orario1;
                     document.getElementById("t2").value = d.orario2;
                     document.getElementById("t3").value = d.orario3;
                 }
-
-                // 3. TIMER
                 updateTimerUI(d.autoActive, d.timeLeft, false);
-
             } catch(e) { console.error(e); }
         }
     }
@@ -187,11 +163,9 @@
         const bar = document.getElementById("food-bar");
         const txt = document.getElementById("perc-text");
         const visualWidth = perc > 100 ? 100 : perc;
-        
         bar.style.width = visualWidth + "%";
         bar.innerText = perc + "%";
         txt.innerText = perc + "%";
-
         if(perc > 100) bar.classList.add("progress-over");
         else bar.classList.remove("progress-over");
     }
@@ -207,7 +181,6 @@
     function inviaComandoManuale() {
         const val = document.getElementById("manual-slider").value;
         send(topicComando, "EROGA:" + val);
-        log("Erogazione manuale: 1/" + val);
     }
     
     function inviaDebug() {
@@ -216,7 +189,6 @@
         else alert("Inserisci passi > 0");
     }
 
-    // --- AUTOMAZIONE ---
     function updateTimerUI(isActive, secondsLeft, isOptimistic) {
         const display = document.getElementById("countdown");
         const badge = document.getElementById("mode-badge");
@@ -259,12 +231,26 @@
         const errorDiv = document.getElementById("error-msg");
 
         errorDiv.style.display = "none";
+        
+        // VALIDAZIONE 1: Tutti vuoti
         if (!v1 && !v2 && !v3) { showError("⚠️ Errore: Inserisci almeno un orario!", box, errorDiv); return; }
+        
+        // VALIDAZIONE 2: Duplicati
         const validi = [v1,v2,v3].filter(o=>o!=="");
         if (new Set(validi).size !== validi.length) { showError("⚠️ Errore: Orari duplicati!", box, errorDiv); return; }
 
+        // VALIDAZIONE 3: Ordine Cronologico (Nuovo!)
+        // Se v1 esiste e v2 esiste, v1 deve essere < v2
+        if (v1 && v2 && v1 >= v2) { showError("⚠️ Errore: Pasto 1 deve essere prima di Pasto 2!", box, errorDiv); return; }
+        if (v2 && v3 && v2 >= v3) { showError("⚠️ Errore: Pasto 2 deve essere prima di Pasto 3!", box, errorDiv); return; }
+        if (v1 && v3 && v1 >= v3) { showError("⚠️ Errore: Pasto 1 deve essere prima di Pasto 3!", box, errorDiv); return; }
+
         const p1 = v1||"--:--"; const p2 = v2||"--:--"; const p3 = v3||"--:--";
         send(topicSetOrari, `${p1},${p2},${p3}`);
+
+        // UI OPTIMISTIC UPDATE: Aggiorna subito lo stato a ON
+        updateTimerUI(true, 0, true);
+        document.getElementById("countdown").innerText = "∞"; 
     }
 
     function showError(msg, box, txt) {
@@ -288,3 +274,4 @@
 </script>
 </body>
 </html>
+
