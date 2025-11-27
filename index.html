@@ -3,54 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>Dispenser Gatto V6</title>
+    <title>Dispenser Gatto V8</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
     
     <style>
-        :root { --p: #007bff; --s: #28a745; --d: #dc3545; --w: #ffc107; --bg: #f4f6f8; }
+        :root { --p: #007bff; --s: #28a745; --d: #dc3545; --w: #ffc107; --bg: #f4f6f8; --card: #fff; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 500px; margin: 0 auto; background: white; border-radius: 15px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .container { max-width: 500px; margin: 0 auto; background: var(--card); border-radius: 15px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         
         h2 { border-bottom: 2px solid #eee; padding-bottom: 10px; color: #555; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 30px;}
-        .big-stat { font-size: 2.5rem; font-weight: 800; color: var(--p); display: block; text-align: center; }
-        .sub-stat { text-align: center; display: block; color: #777; font-size: 0.9rem; }
+        
+        /* Progress Bar */
+        .progress-container { background: #e9ecef; border-radius: 20px; height: 30px; margin: 15px 0; overflow: hidden; position: relative; }
+        .progress-bar { height: 100%; background: var(--s); width: 0%; transition: width 0.5s ease-in-out; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.9rem;}
+        .progress-over { background: #6f42c1; } 
+
+        /* Manual Slider Box */
+        .manual-box { background: #e3f2fd; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #bbdefb; }
+        .slider-label { font-size: 1.2rem; font-weight: bold; color: var(--p); margin-bottom: 10px; display: block;}
+        input[type=range] { width: 100%; margin: 15px 0; cursor: pointer; }
+        .range-values { display: flex; justify-content: space-between; font-size: 0.8rem; color: #666; margin-bottom: 15px; }
 
         /* Timer Box */
-        .timer-box {
-            background: #2d3436; color: white; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px; transition: background 0.3s;
-        }
+        .timer-box { background: #2d3436; color: white; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
         .timer-display { font-family: monospace; font-size: 2rem; color: #00cec9; margin: 10px 0; }
-        .timer-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; opacity: 0.7; }
         .mode-badge { padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 0.8rem; }
-        .mode-on { background: var(--s); color: white; }
-        .mode-off { background: var(--d); color: white; }
+        .mode-on { background: var(--s); } .mode-off { background: var(--d); }
 
-        .btn-group { display: flex; gap: 5px; margin-top: 10px; }
-        button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: transform 0.1s; }
+        /* Buttons & Inputs */
+        button { border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: transform 0.1s; padding: 12px; }
         button:active { transform: scale(0.95); }
-        .btn-on { background: rgba(255,255,255,0.2); color: white; }
-        .btn-off { background: rgba(255,75,75,0.3); color: white; }
-        .btn-main { background: var(--s); color: white; font-size: 1.2rem; width: 100%; margin-top: 10px; box-shadow: 0 4px 6px rgba(40, 167, 69, 0.3); }
+        .btn-main { background: var(--p); color: white; font-size: 1.2rem; width: 100%; margin-top: 5px; box-shadow: 0 4px 6px rgba(0, 123, 255, 0.3); }
+        .btn-group { display: flex; gap: 5px; margin-top: 10px; }
+        .btn-on { background: rgba(255,255,255,0.2); color: white; flex:1; }
+        .btn-off { background: rgba(255,75,75,0.3); color: white; flex:1; }
 
-        /* Inputs */
-        .input-box { background: #fff; border: 1px solid #eee; padding: 15px; border-radius: 10px; transition: border-color 0.3s; }
+        .input-box { background: #fff; border: 1px solid #eee; padding: 15px; border-radius: 10px; }
         .input-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
         input[type="time"] { padding: 8px; border: 1px solid #ddd; border-radius: 5px; width: 60%; font-size: 1.1rem; }
-        .input-btn { width: auto; background: var(--p); color: white; padding: 10px 20px; }
         
-        /* Animazione Errore */
-        .error-border { border-color: var(--d) !important; animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
-        .error-text { color: var(--d); font-weight: bold; font-size: 0.9rem; margin-top: 10px; display: none; text-align: center;}
-        
-        @keyframes shake { 
-            10%, 90% { transform: translate3d(-1px, 0, 0); }
-            20%, 80% { transform: translate3d(2px, 0, 0); }
-            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-            40%, 60% { transform: translate3d(4px, 0, 0); }
-        }
+        /* Debug Area */
+        .debug-area { background: #fff0f0; padding: 15px; border-radius: 10px; border: 1px solid #ffcccc; margin-top: 30px;}
+        input[type="number"] { padding: 8px; border: 1px solid #ddd; border-radius: 5px; }
 
-        .debug-area { background: #fff0f0; padding: 15px; border-radius: 10px; border: 1px solid #ffcccc; margin-top: 20px;}
-        .log { background: #eee; padding: 10px; font-family: monospace; font-size: 0.75rem; color: #555; height: 80px; overflow-y: auto; border-radius: 5px; margin-top: 20px; }
+        /* Errori */
+        .error-border { border-color: var(--d) !important; animation: shake 0.4s; }
+        .error-text { color: var(--d); font-weight: bold; font-size: 0.9rem; margin-top: 10px; display: none; text-align: center;}
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
+
+        .log { background: #eee; padding: 10px; font-family: monospace; font-size: 0.75rem; color: #555; height: 60px; overflow-y: auto; border-radius: 5px; margin-top: 20px; }
     </style>
 </head>
 <body>
@@ -61,63 +62,82 @@
         <span id="conn-text">Connessione...</span>
     </div>
 
-    <!-- BOX TIMER E AUTOMAZIONE -->
+    <!-- 1. BARRA CIBO GIORNALIERO -->
+    <div>
+        <span style="font-weight: bold; color: #555;">Razione consumata oggi</span>
+        <div class="progress-container">
+            <div id="food-bar" class="progress-bar">0%</div>
+        </div>
+        <div style="text-align: center; font-size: 0.9rem; color: #777;">
+            Il gatto ha mangiato il <span id="perc-text" style="font-weight: bold; color: #333;">0%</span> della dose.
+        </div>
+    </div>
+
+    <hr style="margin: 25px 0; border: 0; border-top: 1px solid #eee;">
+
+    <!-- 2. EROGAZIONE MANUALE -->
+    <div class="manual-box">
+        <label style="font-size: 0.9rem; color: #555; text-transform: uppercase;">Erogazione Manuale</label>
+        
+        <input type="range" id="manual-slider" min="1" max="3" value="1" step="1" oninput="updateSliderLabel()">
+        
+        <div class="range-values">
+            <span>Intera (1)</span>
+            <span>Metà (2)</span>
+            <span>Un Terzo (3)</span>
+        </div>
+        
+        <span id="slider-desc" class="slider-label">Razione Intera</span>
+        
+        <button id="btn-eroga" class="btn-main" onclick="inviaComandoManuale()" disabled>
+            🍖 EROGA ORA
+        </button>
+    </div>
+
+    <!-- 3. AUTOMAZIONE -->
+    <h2>Automazione</h2>
     <div id="timer-box-ui" class="timer-box">
-        <div class="timer-label">STATO AUTOMATICO</div>
-        <div style="margin-top: 5px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.8rem; opacity: 0.8;">STATO</span>
             <span id="mode-badge" class="mode-badge mode-on">ATTIVO</span>
         </div>
         
         <div id="countdown" class="timer-display">--:--:--</div>
-        <div id="countdown-label" style="font-size: 0.8rem; color: #aaa;">Sempre attivo</div>
-
+        
         <div class="btn-group">
             <button class="btn-on" onclick="setMode('ON_ALWAYS')">Sempre ON</button>
-            <button class="btn-off" onclick="setMode('OFF_TOMORROW')">OFF da Domani</button>
+            <button class="btn-off" onclick="setMode('OFF_TOMORROW')">OFF Domani</button>
             <button class="btn-off" style="background: rgba(255,0,0,0.5);" onclick="setMode('OFF_NOW')">OFF Ora</button>
         </div>
     </div>
 
-    <!-- STATISTICHE -->
-    <div>
-        <span class="sub-stat">Pasti serviti oggi</span>
-        <span id="stat-pasti" class="big-stat">-</span>
-        <span id="info-porzione" class="sub-stat" style="color: var(--p); font-weight: bold;">Calcolo porzione...</span>
-    </div>
-
-    <!-- AZIONE -->
-    <button id="btn-eroga" class="btn-main" onclick="inviaComando('EROGA')" disabled>EROGA PASTO</button>
-
-    <!-- ORARI -->
-    <h2>Orari (Automatici)</h2>
+    <!-- 4. ORARI -->
     <div id="orari-box" class="input-box">
+        <div style="margin-bottom: 10px; font-weight: bold; color: #555;">Imposta Orari</div>
         <div class="input-row"><label>Pasto 1</label> <input type="time" id="t1"></div>
         <div class="input-row"><label>Pasto 2</label> <input type="time" id="t2"></div>
         <div class="input-row"><label>Pasto 3</label> <input type="time" id="t3"></div>
-        
-        <!-- MESSAGGIO ERRORE INTEGRATO -->
         <div id="error-msg" class="error-text"></div>
-
         <div style="text-align: right; margin-top: 15px;">
-            <button class="input-btn" onclick="salvaOrari()">Salva Configurazione</button>
+            <button style="background: #6c757d; color: white;" onclick="salvaOrari()">Salva Configurazione</button>
         </div>
-        <p style="font-size: 0.8rem; color: #888; margin-top: 5px;">* Lascia vuoto un orario per non usarlo.</p>
     </div>
 
-    <!-- DEBUG -->
+    <!-- 5. DEBUG / MANUTENZIONE -->
     <div class="debug-area">
-        <div style="font-weight: bold; color: var(--d); margin-bottom: 5px;">🔧 Debug / Manuale</div>
+        <div style="font-weight: bold; color: var(--d); margin-bottom: 10px;">🔧 Debug / Sblocco</div>
         <div style="display: flex; gap: 10px;">
-            <input type="number" id="debug-steps" placeholder="Passi" style="width: 100px; padding: 8px;">
-            <button style="background: var(--d); color: white;" onclick="inviaDebug()">Muovi Motore</button>
+            <input type="number" id="debug-steps" placeholder="Passi (es. 200)" style="width: 100px;">
+            <button style="background: var(--d); color: white; flex: 1;" onclick="inviaDebug()">Muovi Motore</button>
         </div>
+        <p style="font-size: 0.7rem; color: #d63384; margin-top: 5px;">*Questi movimenti non aumentano la barra della razione consumata.</p>
     </div>
 
     <div class="log" id="console">Log sistema...</div>
 </div>
 
 <script>
-    // --- CREDENZIALI ---
+    // CREDENZIALI
     const mqttHost = "4c412304f01a4a51a191fe4c3d31daa9.s1.eu.hivemq.cloud"; 
     const mqttPort = 8884;
     const mqttUser = "Nicola";
@@ -129,13 +149,10 @@
     const topicSetMode = "dispenser/set/mode";
     const topicDati = "dispenser/dati";
 
-    // VARIABILI GLOBALI
-    let espTimeLeft = 0; 
-    let jsTimer = null;  
+    let espTimeLeft = 0; let jsTimer = null;  
 
-    // CLIENT
     const client = new Paho.MQTT.Client(mqttHost, Number(mqttPort), "Web-" + Date.now());
-    client.onConnectionLost = (resp) => { updateStatus(false); log("Persa: " + resp.errorMessage); };
+    client.onConnectionLost = (r) => { updateStatus(false); log("Persa: " + r.errorMessage); };
     client.onMessageArrived = onMessage;
 
     client.connect({
@@ -144,105 +161,94 @@
         onFailure: (m) => { updateStatus(false); log("Err: " + m.errorMessage); }
     });
 
-    // --- RICEZIONE DATI ---
     function onMessage(msg) {
         if(msg.destinationName === topicDati) {
             try {
                 const d = JSON.parse(msg.payloadString);
                 
-                // 1. Stats
-                document.getElementById("stat-pasti").innerText = d.pastiOggi;
-                
-                // Info porzione
-                const infoText = "Porzione attuale: 1/" + d.divisoreCalcolato + " della razione";
-                if(document.getElementById("info-porzione").innerText !== infoText) {
-                    document.getElementById("info-porzione").innerText = infoText;
-                }
+                // 1. UPDATE BARRA PROGRESSO
+                updateProgressBar(d.percentualeOggi);
 
-                // 2. Orari (solo se non li sto scrivendo io)
+                // 2. ORARI
                 if(document.activeElement.tagName !== "INPUT") {
                     document.getElementById("t1").value = d.orario1;
                     document.getElementById("t2").value = d.orario2;
                     document.getElementById("t3").value = d.orario3;
                 }
 
-                // 3. Gestione TIMER e AUTO MODE
+                // 3. TIMER
                 updateTimerUI(d.autoActive, d.timeLeft, false);
 
             } catch(e) { console.error(e); }
         }
     }
 
-    // --- UI UPDATE LOGIC ---
+    function updateProgressBar(perc) {
+        const bar = document.getElementById("food-bar");
+        const txt = document.getElementById("perc-text");
+        const visualWidth = perc > 100 ? 100 : perc;
+        
+        bar.style.width = visualWidth + "%";
+        bar.innerText = perc + "%";
+        txt.innerText = perc + "%";
+
+        if(perc > 100) bar.classList.add("progress-over");
+        else bar.classList.remove("progress-over");
+    }
+
+    function updateSliderLabel() {
+        const val = document.getElementById("manual-slider").value;
+        const lbl = document.getElementById("slider-desc");
+        if(val == "1") lbl.innerText = "Razione Intera (100%)";
+        else if(val == "2") lbl.innerText = "Mezza Razione (50%)";
+        else if(val == "3") lbl.innerText = "Un Terzo di Razione (33%)";
+    }
+
+    function inviaComandoManuale() {
+        const val = document.getElementById("manual-slider").value;
+        send(topicComando, "EROGA:" + val);
+        log("Erogazione manuale: 1/" + val);
+    }
+    
+    function inviaDebug() {
+        const s = document.getElementById("debug-steps").value;
+        if(s>0) send(topicComando, "DEBUG:"+s);
+        else alert("Inserisci passi > 0");
+    }
+
+    // --- AUTOMAZIONE ---
     function updateTimerUI(isActive, secondsLeft, isOptimistic) {
-        const badge = document.getElementById("mode-badge");
         const display = document.getElementById("countdown");
-        const label = document.getElementById("countdown-label");
-        const box = document.getElementById("timer-box-ui");
+        const badge = document.getElementById("mode-badge");
 
         if (jsTimer) clearInterval(jsTimer);
 
         if (!isActive) {
-            badge.className = "mode-badge mode-off";
-            badge.innerText = "MANUALE (Auto OFF)";
-            display.innerText = "OFF";
-            display.style.color = "#ff7675";
-            label.innerText = "Nessun orario programmato";
-            box.style.background = "#2d3436";
+            badge.className = "mode-badge mode-off"; badge.innerText = "MANUALE (OFF)";
+            display.innerText = "OFF"; display.style.color = "#ff7675";
         } else {
-            badge.className = "mode-badge mode-on";
-            badge.innerText = "AUTOMATICO ATTIVO";
-            box.style.background = "#2d3436";
-            
+            badge.className = "mode-badge mode-on"; badge.innerText = "AUTO ATTIVO";
             if (secondsLeft <= 0 && !isOptimistic) {
-                display.innerText = "∞"; 
-                display.style.color = "#00cec9";
-                label.innerText = "Attivo indefinitamente";
+                display.innerText = "∞"; display.style.color = "#00cec9";
             } else {
                 espTimeLeft = secondsLeft;
-                if (isOptimistic && secondsLeft === 99999) {
-                    display.innerText = "Calcolo...";
-                    label.innerText = "Sincronizzazione...";
-                } else {
-                    label.innerText = "Tempo rimanente automazione";
-                    tickTock(); 
-                    jsTimer = setInterval(tickTock, 1000);
-                }
+                tickTock(); jsTimer = setInterval(tickTock, 1000);
             }
         }
     }
 
     function tickTock() {
-        if (espTimeLeft <= 0) {
-            if(espTimeLeft !== -999) document.getElementById("countdown").innerText = "00:00:00"; 
-            return;
-        }
+        if (espTimeLeft <= 0) { if(espTimeLeft!==-999) document.getElementById("countdown").innerText = "00:00:00"; return; }
         espTimeLeft--; 
-        const h = Math.floor(espTimeLeft / 3600);
-        const m = Math.floor((espTimeLeft % 3600) / 60);
-        const s = espTimeLeft % 60;
-        document.getElementById("countdown").innerText = 
-            `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+        const h = Math.floor(espTimeLeft/3600); const m = Math.floor((espTimeLeft%3600)/60); const s = espTimeLeft%60;
+        document.getElementById("countdown").innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
     }
 
-    // --- COMANDI ---
     function setMode(mode) {
         if(mode === 'OFF_NOW') updateTimerUI(false, 0, true);
-        else if (mode === 'ON_ALWAYS') {
-            updateTimerUI(true, 0, true);
-            document.getElementById("countdown").innerText = "∞"; 
-            document.getElementById("countdown").style.color = "#00cec9";
-        } else if (mode === 'OFF_TOMORROW') updateTimerUI(true, 99999, true);
-
+        else if (mode === 'ON_ALWAYS') { updateTimerUI(true, 0, true); document.getElementById("countdown").innerText = "∞"; }
+        else if (mode === 'OFF_TOMORROW') updateTimerUI(true, 99999, true);
         send(topicSetMode, mode);
-        log("Set Mode: " + mode);
-    }
-
-    function inviaComando(cmd) { send(topicComando, cmd); }
-    
-    function inviaDebug() {
-        const s = document.getElementById("debug-steps").value;
-        if(s>0) send(topicComando, "DEBUG:"+s);
     }
 
     function salvaOrari() {
@@ -252,65 +258,31 @@
         const box = document.getElementById("orari-box");
         const errorDiv = document.getElementById("error-msg");
 
-        // RESET ERRORI
         errorDiv.style.display = "none";
-        errorDiv.innerText = "";
+        if (!v1 && !v2 && !v3) { showError("⚠️ Errore: Inserisci almeno un orario!", box, errorDiv); return; }
+        const validi = [v1,v2,v3].filter(o=>o!=="");
+        if (new Set(validi).size !== validi.length) { showError("⚠️ Errore: Orari duplicati!", box, errorDiv); return; }
 
-        // VALIDAZIONE 1: TUTTI NULLI
-        if (!v1 && !v2 && !v3) {
-            showError("⚠️ Errore: Non puoi lasciare tutti gli orari vuoti!", box, errorDiv);
-            return;
-        }
-
-        // VALIDAZIONE 2: DUPLICATI
-        const orariValidi = [v1, v2, v3].filter(o => o !== "");
-        const unici = new Set(orariValidi);
-        
-        if (orariValidi.length !== unici.size) {
-            showError("⚠️ Errore: Hai inserito orari duplicati!", box, errorDiv);
-            return;
-        }
-
-        // FEEDBACK ISTANTANEO
-        document.getElementById("info-porzione").innerText = "Porzione (Anteprima): 1/" + orariValidi.length + " della razione";
-        log("Configurazione valida. Salvataggio...");
-
-        // INVIO
-        const p1 = v1 || "--:--";
-        const p2 = v2 || "--:--";
-        const p3 = v3 || "--:--";
+        const p1 = v1||"--:--"; const p2 = v2||"--:--"; const p3 = v3||"--:--";
         send(topicSetOrari, `${p1},${p2},${p3}`);
     }
 
-    function showError(msg, boxElement, textElement) {
-        textElement.innerText = msg;
-        textElement.style.display = "block";
-        
-        boxElement.classList.remove("error-border"); 
-        void boxElement.offsetWidth; // Force reflow
-        boxElement.classList.add("error-border");
+    function showError(msg, box, txt) {
+        txt.innerText = msg; txt.style.display = "block";
+        box.classList.remove("error-border"); void box.offsetWidth; box.classList.add("error-border");
     }
 
-    // --- UTILS ---
     function send(t, m) {
         if(client.isConnected()) {
-            const msg = new Paho.MQTT.Message(m);
-            msg.destinationName = t;
-            client.send(msg);
-        } else {
-            alert("Non connesso!");
-        }
+            const msg = new Paho.MQTT.Message(m); msg.destinationName = t; client.send(msg);
+        } else alert("Non connesso!");
     }
 
     function updateStatus(ok) {
-        const dot = document.getElementById("conn-dot");
-        const txt = document.getElementById("conn-text");
+        const dot = document.getElementById("conn-dot"); const txt = document.getElementById("conn-text");
         const btn = document.getElementById("btn-eroga");
-        if(ok) {
-            dot.style.background = "#28a745"; txt.innerText = "Online"; btn.disabled = false;
-        } else {
-            dot.style.background = "red"; txt.innerText = "Offline"; btn.disabled = true;
-        }
+        if(ok) { dot.style.background = "#28a745"; txt.innerText = "Online"; btn.disabled = false; }
+        else { dot.style.background = "red"; txt.innerText = "Offline"; btn.disabled = true; }
     }
     function log(m) { document.getElementById("console").innerHTML = "> "+m; }
 </script>
