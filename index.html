@@ -3,50 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>Dispenser Gatto V13</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
-    
-    <style>
-        :root { 
-            /* Palette Pastello */
-            --bg: #f0f4f8; 
-            --card: #ffffff;
-            --primary: #74b9ff; 
-            --primary-dark: #0984e3;
-            --success: #55efc4; 
-            --success-dark: #00b894;
-            --danger: #ff7675; 
-            --danger-dark: #d63031;
-            --warning: #ffeaa7; 
-            --text: #2d3436;
-            --text-light: #636e72;
-            --purple: #a29bfe; 
-        }
-
-        body { font-family: 'Quicksand', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--text); }
-        .container { max-width: 500px; margin: 0 auto; background: var(--card); border-radius: 20px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
-        
-        h2 { border-bottom: 2px solid #f1f2f6; padding-bottom: 10px; color: var(--text-light); font-size: 1.2rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 35px; text-align: center;}
-        
-        /* HEADER CONNESSIONE */
-        .conn-wrapper { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; background: #f1f2f6; padding: 8px 15px; border-radius: 50px; width: fit-content; margin-left: auto; margin-right: auto; }
-        .conn-dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; transition: background 0.3s; }
-        .conn-text { font-size: 0.85rem; font-weight: bold; color: var(--text-light); }
-        
-        /* STATUS AUTO BADGE */
-        .status-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #fff; border: 1px solid #eee; padding: 15px; border-radius: 15px; }
-        .mode-badge { padding: 8px 16px; border-radius: 12px; font-weight: 700; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .mode-active { background: var(--success); color: #fff; }
-        .mode-inactive { background: var(--danger); color: #fff; }
-        .mode-wait { background: var(--warning); color: #5d5438; }
-
-        /* PRO<!DOCTYPE html>
-<html lang="it">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>Dispenser Gatto V15</title>
+    <title>Dispenser Gatto V16</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
     
@@ -55,6 +12,7 @@
             --bg: #f4f8fb; 
             --card: #ffffff;
             --primary: #74b9ff; 
+            --primary-dark: #0984e3;
             --success: #00b894;
             --success-light: #55efc4;
             --danger: #ff7675; 
@@ -62,7 +20,7 @@
             --text: #2d3436;
             --text-light: #b2bec3;
             --purple: #a29bfe; 
-            --purple-dark: #6c5ce7;
+            --purple-dark: #6c5ce7; /* Viola per i bottoni */
         }
 
         body { font-family: 'Quicksand', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--text); }
@@ -76,16 +34,34 @@
         .conn-text { font-size: 0.8rem; font-weight: bold; color: var(--text-light); }
         
         /* STATUS BADGE */
-        .status-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #fff; border: 2px solid #f1f2f6; padding: 12px 15px; border-radius: 18px; gap: 15px; }
-        .status-title { font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 1.2rem; color: var(--text); }
-        .mode-badge { padding: 6px 12px; border-radius: 10px; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; white-space: nowrap; min-width: 80px; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .status-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #fff; border: 2px solid #f1f2f6; padding: 12px 15px; border-radius: 18px; gap: 10px; }
+        .status-title { font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 1.2rem; color: var(--text); line-height: 1.2; }
+        
+        .mode-badge { 
+            padding: 8px 12px; 
+            border-radius: 12px; 
+            font-weight: 700; 
+            font-size: 0.85rem; 
+            text-transform: uppercase; 
+            text-align: center; 
+            min-width: 90px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
         .mode-active { background: var(--success); color: #fff; }
         .mode-inactive { background: var(--danger); color: #fff; }
         .mode-wait { background: var(--warning); color: #635e4e; }
 
-        /* PROGRESS BAR */
+        /* PROGRESS BAR - VERDE DEFAULT */
         .progress-container { background: #f1f2f6; border-radius: 15px; height: 32px; margin: 15px 0; overflow: hidden; position: relative; border: 1px solid #eee; }
-        .progress-bar { height: 100%; background: linear-gradient(90deg, var(--success-light), var(--success)); width: 0%; transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; text-shadow: 0 1px 1px rgba(0,0,0,0.1); font-size: 0.85rem;}
+        .progress-bar { 
+            height: 100%; 
+            background: linear-gradient(90deg, var(--success-light), var(--success)); /* VERDE */
+            width: 0%; 
+            transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); 
+            display: flex; align-items: center; justify-content: center; 
+            color: white; font-weight: bold; text-shadow: 0 1px 1px rgba(0,0,0,0.1); font-size: 0.85rem;
+        }
+        /* Overfeeding VIOLA */
         .progress-over { background: linear-gradient(90deg, var(--purple), var(--purple-dark)) !important; } 
         
         .reset-link { font-size: 0.8rem; color: var(--text-light); text-decoration: none; cursor: pointer; float: right; padding: 5px 10px; border-radius: 5px; transition: color 0.2s; }
@@ -106,8 +82,13 @@
         input[type=range] { width: 100%; margin: 20px 0; accent-color: var(--primary); cursor: pointer; height: 6px; background: #dfe6e9; border-radius: 5px; }
         .range-values { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-light); font-weight: bold; margin-bottom: 10px; }
         
-        /* ORARI INPUTS */
-        .time-inputs-container { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 15px; }
+        /* ORARI INPUTS - GRID PERFETTA */
+        .time-inputs-container { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr 1fr; /* 3 colonne uguali */
+            gap: 10px; 
+            margin-bottom: 15px; 
+        }
         input[type="time"], input[type="date"] { 
             padding: 10px; border: 2px solid #f1f2f6; border-radius: 12px; 
             font-family: 'Quicksand', sans-serif; font-weight: bold; color: var(--text); 
@@ -126,12 +107,31 @@
         .btn-reset { background: transparent; color: var(--danger); border: 2px solid var(--danger-dark); margin-top: 10px; width: 100%; opacity: 0.8; }
         .btn-reset:hover { opacity: 1; background: #fff0f0; }
 
-        /* TASTI VIOLA */
-        .btn-purple { background: var(--purple-dark); color: white; width: 100%; margin-top: 10px; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3); }
+        /* TASTI VIOLA (SCURI E BEN VISIBILI) */
+        .btn-purple { 
+            background: var(--purple-dark); /* Viola Scuro */
+            color: #ffffff; /* Testo Bianco */
+            width: 100%; margin-top: 10px; 
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3); 
+        }
+        .btn-purple:hover { background: #5f27cd; }
 
         .input-box { background: #fff; border: 2px solid #f4f8fb; padding: 20px; border-radius: 20px; margin-top: 10px;}
+        
+        /* ERRORI */
+        .error-text { color: var(--danger); font-weight: bold; font-size: 0.9rem; margin-top: 10px; display: none; text-align: center; background: #fff5f5; padding: 10px; border-radius: 8px; border: 1px solid #ffcccc; }
+        .error-border input { border-color: var(--danger); }
+
         .debug-container { background: #fff5f5; padding: 15px; border-radius: 15px; margin-top: 30px; border: 2px dashed #ffdcdc; display: flex; gap: 10px; align-items: center;}
         .log { background: #2d3436; padding: 15px; font-family: monospace; font-size: 0.75rem; color: #55efc4; height: 80px; overflow-y: auto; border-radius: 12px; margin-top: 25px; border: 2px solid #2d3436;}
+
+        /* MEDIA QUERY PER MOBILE */
+        @media (max-width: 480px) {
+            .btn-reset { font-size: 0.8rem; white-space: normal; padding: 10px; height: auto; }
+            .mode-badge { font-size: 0.75rem; min-width: auto; padding: 6px 10px; }
+            .status-title { font-size: 1rem; }
+            .container { padding: 15px; }
+        }
     </style>
 </head>
 <body>
@@ -192,13 +192,18 @@
         <button id="btn-eroga" class="btn-main" onclick="erogaManuale()" disabled>🍖 EROGA SUBITO</button>
     </div>
 
-    <div class="input-box">
+    <div class="input-box" id="orari-container">
         <div style="margin-bottom: 20px; font-weight: bold; color: var(--text-light); text-align: center; font-size: 1rem;">⏰ Orari Giornalieri</div>
+        
+        <!-- Grid 3 colonne -->
         <div class="time-inputs-container">
             <input type="time" id="t1"> <input type="time" id="t2"> <input type="time" id="t3">
         </div>
+        
+        <div id="error-msg" class="error-text"></div>
+
         <!-- Tasto VIOLA -->
-        <button class="btn-purple" onclick="salvaOrari()">Salva Orari</button>
+        <button class="btn-purple" onclick="salvaOrari()">Salva Configurazione Orari</button>
     </div>
 
     <div class="debug-container">
@@ -233,7 +238,6 @@
             updateStatus(true); 
             client.subscribe(topics.dati); 
             log("Connesso - Richiedo dati..."); 
-            // Invia SYNC appena connesso!
             sendCmd("SYNC");
         },
         onFailure: () => updateStatus(false)
@@ -242,11 +246,19 @@
     function onMessage(msg) {
         try {
             const d = JSON.parse(msg.payloadString);
+            
+            // Barra
             const p = d.percentualeOggi;
             const bar = document.getElementById("food-bar");
             bar.style.width = (p > 100 ? 100 : p) + "%";
             bar.innerText = p + "%";
-            if(p > 100) bar.classList.add("progress-over"); else bar.classList.remove("progress-over");
+            
+            // Verde se <=100, Viola se >100
+            if(p > 100) {
+                bar.classList.add("progress-over"); 
+            } else {
+                bar.classList.remove("progress-over");
+            }
             
             const badge = document.getElementById("status-badge");
             badge.innerText = d.activeStatus;
@@ -309,12 +321,43 @@
         const divisore = 4 - parseInt(document.getElementById("manual-slider").value);
         sendCmd("EROGA:" + divisore);
     }
+
+    // --- SALVATAGGIO ORARI CON CONTROLLO CRONOLOGICO ---
     function salvaOrari() {
-        const t1 = document.getElementById("t1").value || "--:--";
-        const t2 = document.getElementById("t2").value || "--:--";
-        const t3 = document.getElementById("t3").value || "--:--";
-        send(topics.orari, `${t1},${t2},${t3}`);
+        const t1 = document.getElementById("t1").value;
+        const t2 = document.getElementById("t2").value;
+        const t3 = document.getElementById("t3").value;
+        const errorDiv = document.getElementById("error-msg");
+        const container = document.getElementById("orari-container");
+
+        errorDiv.style.display = "none";
+        
+        // 1. Almeno uno
+        if (!t1 && !t2 && !t3) { showError("⚠️ Inserisci almeno un orario!", errorDiv, container); return; }
+
+        // 2. Controllo Cronologico (Solo se entrambi i campi sono pieni)
+        // t1 < t2
+        if (t1 && t2 && t1 >= t2) { showError("⚠️ Errore: Orario 1 deve essere prima di Orario 2", errorDiv, container); return; }
+        // t2 < t3
+        if (t2 && t3 && t2 >= t3) { showError("⚠️ Errore: Orario 2 deve essere prima di Orario 3", errorDiv, container); return; }
+        // t1 < t3
+        if (t1 && t3 && t1 >= t3) { showError("⚠️ Errore: Orario 1 deve essere prima di Orario 3", errorDiv, container); return; }
+
+        const p1 = t1 || "--:--";
+        const p2 = t2 || "--:--";
+        const p3 = t3 || "--:--";
+        send(topics.orari, `${p1},${p2},${p3}`);
     }
+
+    function showError(msg, div, box) {
+        div.innerText = msg;
+        div.style.display = "block";
+        // Effetto shake
+        box.classList.remove("error-border");
+        void box.offsetWidth;
+        box.classList.add("error-border");
+    }
+
     function send(t, m) { if(client.isConnected()) { const msg = new Paho.MQTT.Message(m); msg.destinationName=t; client.send(msg); } }
     
     function updateStatus(ok) { 
@@ -329,3 +372,4 @@
 </script>
 </body>
 </html>
+
