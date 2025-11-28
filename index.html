@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>Dispenser Gatto V9</title>
+    <title>Dispenser Gatto V11</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
     
     <style>
@@ -13,112 +13,119 @@
         
         h2 { border-bottom: 2px solid #eee; padding-bottom: 10px; color: #555; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 30px;}
         
+        /* Status Badge */
+        .status-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .mode-badge { padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 0.9rem; text-transform: uppercase; }
+        .mode-active { background: #e6fffa; color: #00b894; border: 1px solid #00b894; }
+        .mode-inactive { background: #fff5f5; color: #d63031; border: 1px solid #d63031; }
+        .mode-wait { background: #fffce6; color: #fdcb6e; border: 1px solid #fdcb6e; }
+
+        /* Tabs for Dates */
+        .tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+        .tab-btn { flex: 1; padding: 10px; border: 1px solid #eee; background: #f9f9f9; cursor: pointer; border-radius: 8px; font-size: 0.9rem; }
+        .tab-btn.active { background: var(--p); color: white; border-color: var(--p); }
+
+        .date-panel { background: #f8f9fa; padding: 15px; border-radius: 10px; border: 1px solid #eee; display: none; }
+        .date-panel.show { display: block; }
+        
+        input[type="date"] { padding: 10px; border: 1px solid #ddd; border-radius: 5px; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
+        
+        /* Buttons */
+        button { border: none; border-radius: 8px; font-weight: bold; cursor: pointer; padding: 12px; transition: opacity 0.2s; }
+        .btn-main { background: var(--p); color: white; width: 100%; font-size: 1.1rem; }
+        .btn-apply { background: #6c757d; color: white; width: 100%; font-size: 0.9rem; }
+        .btn-reset { background: transparent; color: var(--d); border: 1px solid var(--d); margin-top: 10px; width: 100%; }
+
         /* Progress Bar */
         .progress-container { background: #e9ecef; border-radius: 20px; height: 30px; margin: 15px 0; overflow: hidden; position: relative; }
-        .progress-bar { height: 100%; background: var(--s); width: 0%; transition: width 0.5s ease-in-out; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 0.9rem;}
-        .progress-over { background: #6f42c1; } 
-
-        /* Manual Slider Box */
-        .manual-box { background: #e3f2fd; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #bbdefb; }
-        .slider-label { font-size: 1.2rem; font-weight: bold; color: var(--p); margin-bottom: 10px; display: block;}
-        input[type=range] { width: 100%; margin: 15px 0; cursor: pointer; }
-        .range-values { display: flex; justify-content: space-between; font-size: 0.8rem; color: #666; margin-bottom: 15px; }
-
-        /* Timer Box */
-        .timer-box { background: #2d3436; color: white; padding: 20px; border-radius: 10px; text-align: center; margin-bottom: 20px; }
-        .timer-display { font-family: monospace; font-size: 2rem; color: #00cec9; margin: 10px 0; }
-        .mode-badge { padding: 5px 10px; border-radius: 5px; font-weight: bold; font-size: 0.8rem; }
-        .mode-on { background: var(--s); } .mode-off { background: var(--d); }
-
-        /* Buttons & Inputs */
-        button { border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: transform 0.1s; padding: 12px; }
-        button:active { transform: scale(0.95); }
-        .btn-main { background: var(--p); color: white; font-size: 1.2rem; width: 100%; margin-top: 5px; box-shadow: 0 4px 6px rgba(0, 123, 255, 0.3); }
-        .btn-group { display: flex; gap: 5px; margin-top: 10px; }
-        .btn-on { background: rgba(255,255,255,0.2); color: white; flex:1; }
-        .btn-off { background: rgba(255,75,75,0.3); color: white; flex:1; }
-
-        .input-box { background: #fff; border: 1px solid #eee; padding: 15px; border-radius: 10px; }
-        .input-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-        input[type="time"] { padding: 8px; border: 1px solid #ddd; border-radius: 5px; width: 60%; font-size: 1.1rem; }
+        .progress-bar { height: 100%; background: var(--s); width: 0%; transition: width 0.5s; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
         
-        .debug-area { background: #fff0f0; padding: 15px; border-radius: 10px; border: 1px solid #ffcccc; margin-top: 30px;}
-        input[type="number"] { padding: 8px; border: 1px solid #ddd; border-radius: 5px; }
-
-        .error-border { border-color: var(--d) !important; animation: shake 0.4s; }
-        .error-text { color: var(--d); font-weight: bold; font-size: 0.9rem; margin-top: 10px; display: none; text-align: center;}
-        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
-
+        .reset-link { font-size: 0.8rem; color: #999; text-decoration: underline; cursor: pointer; float: right; }
+        
+        /* Debug & Manual */
+        .manual-box { background: #e3f2fd; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #bbdefb; }
+        input[type=range] { width: 100%; margin: 15px 0; }
+        
+        .input-box { background: #fff; border: 1px solid #eee; padding: 15px; border-radius: 10px; }
+        input[type="time"] { padding: 8px; border: 1px solid #ddd; border-radius: 5px; width: 60%; }
+        
         .log { background: #eee; padding: 10px; font-family: monospace; font-size: 0.75rem; color: #555; height: 60px; overflow-y: auto; border-radius: 5px; margin-top: 20px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div style="text-align: center; margin-bottom: 20px;">
-        <span id="conn-dot" style="height:10px; width:10px; background:grey; border-radius:50%; display:inline-block;"></span>
-        <span id="conn-text">Connessione...</span>
+    <div style="text-align: center; margin-bottom: 10px;">
+        <span id="conn-text" style="font-size: 0.8rem; color: grey;">Connessione...</span>
     </div>
 
     <!-- 1. BARRA CIBO -->
     <div>
-        <span style="font-weight: bold; color: #555;">Razione consumata oggi</span>
+        <span style="font-weight: bold; color: #555;">Razione Oggi</span>
+        <span class="reset-link" onclick="resetStats()">Reset</span>
         <div class="progress-container">
             <div id="food-bar" class="progress-bar">0%</div>
         </div>
-        <div style="text-align: center; font-size: 0.9rem; color: #777;">
-            Il gatto ha mangiato il <span id="perc-text" style="font-weight: bold; color: #333;">0%</span> della dose.
-        </div>
     </div>
 
-    <hr style="margin: 25px 0; border: 0; border-top: 1px solid #eee;">
+    <hr style="margin: 20px 0; border-top: 1px solid #eee;">
 
-    <!-- 2. EROGAZIONE MANUALE -->
+    <!-- 2. GESTIONE AUTOMAZIONE (DATE) -->
+    <div class="status-header">
+        <span style="font-weight: bold;">Stato Auto:</span>
+        <span id="status-badge" class="mode-badge mode-active">--</span>
+    </div>
+
+    <div class="tabs">
+        <div class="tab-btn active" onclick="switchTab('single')" id="tab-single">Scadenza</div>
+        <div class="tab-btn" onclick="switchTab('vacation')" id="tab-vacation">Vacanza</div>
+    </div>
+
+    <!-- Pannello Scadenza -->
+    <div id="panel-single" class="date-panel show">
+        <label style="font-size: 0.9rem;">Esegui automaticamente FINO AL:</label>
+        <input type="date" id="date-stop">
+        <button class="btn-apply" onclick="setStopDate()">Imposta Scadenza</button>
+        <button class="btn-reset" onclick="resetDates()">Cancella Date (Sempre ON)</button>
+    </div>
+
+    <!-- Pannello Vacanza -->
+    <div id="panel-vacation" class="date-panel">
+        <label style="font-size: 0.9rem;">Attiva SOLO in questo periodo:</label>
+        <div style="display:flex; gap:5px;">
+            <div style="flex:1"><small>Dal</small><input type="date" id="vac-start"></div>
+            <div style="flex:1"><small>Al</small><input type="date" id="vac-end"></div>
+        </div>
+        <button class="btn-apply" style="background: var(--p);" onclick="setVacation()">Imposta Vacanza</button>
+        <button class="btn-reset" onclick="resetDates()">Cancella Date</button>
+    </div>
+
+    <!-- 3. EROGAZIONE MANUALE -->
+    <h2>Manuale</h2>
     <div class="manual-box">
-        <label style="font-size: 0.9rem; color: #555; text-transform: uppercase;">Erogazione Manuale</label>
-        <input type="range" id="manual-slider" min="1" max="3" value="1" step="1" oninput="updateSliderLabel()">
-        <div class="range-values"><span>Intera (1)</span><span>Metà (2)</span><span>Un Terzo (3)</span></div>
-        <span id="slider-desc" class="slider-label">Razione Intera</span>
-        <button id="btn-eroga" class="btn-main" onclick="inviaComandoManuale()" disabled>🍖 EROGA ORA</button>
-    </div>
-
-    <!-- 3. AUTOMAZIONE -->
-    <h2>Automazione</h2>
-    <div id="timer-box-ui" class="timer-box">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 0.8rem; opacity: 0.8;">STATO</span>
-            <span id="mode-badge" class="mode-badge mode-on">ATTIVO</span>
-        </div>
-        <div id="countdown" class="timer-display">--:--:--</div>
-        <div class="btn-group">
-            <button class="btn-on" onclick="setMode('ON_ALWAYS')">Sempre ON</button>
-            <button class="btn-off" onclick="setMode('OFF_TOMORROW')">OFF Domani</button>
-            <button class="btn-off" style="background: rgba(255,0,0,0.5);" onclick="setMode('OFF_NOW')">OFF Ora</button>
-        </div>
+        <input type="range" id="manual-slider" min="1" max="3" value="1" oninput="updateLabel()">
+        <span id="slider-desc" style="font-weight: bold; color: var(--p);">Razione Intera</span>
+        <button id="btn-eroga" class="btn-main" onclick="sendCmd('EROGA:'+document.getElementById('manual-slider').value)" disabled>EROGA</button>
     </div>
 
     <!-- 4. ORARI -->
-    <div id="orari-box" class="input-box">
-        <div style="margin-bottom: 10px; font-weight: bold; color: #555;">Imposta Orari (In Ordine)</div>
-        <div class="input-row"><label>Pasto 1</label> <input type="time" id="t1"></div>
-        <div class="input-row"><label>Pasto 2</label> <input type="time" id="t2"></div>
-        <div class="input-row"><label>Pasto 3</label> <input type="time" id="t3"></div>
-        <div id="error-msg" class="error-text"></div>
-        <div style="text-align: right; margin-top: 15px;">
-            <button style="background: #6c757d; color: white;" onclick="salvaOrari()">Salva Configurazione</button>
+    <div class="input-box" style="margin-top: 20px;">
+        <div style="margin-bottom: 10px; font-weight: bold;">Orari Giornalieri</div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <input type="time" id="t1"> <input type="time" id="t2"> <input type="time" id="t3">
         </div>
+        <div style="text-align: right;"><button class="btn-apply" style="width: auto;" onclick="salvaOrari()">Salva Orari</button></div>
     </div>
 
     <!-- 5. DEBUG -->
-    <div class="debug-area">
-        <div style="font-weight: bold; color: var(--d); margin-bottom: 10px;">🔧 Debug / Sblocco</div>
+    <div style="background: #fff0f0; padding: 10px; border-radius: 10px; margin-top: 20px; border: 1px solid #ffcccc;">
         <div style="display: flex; gap: 10px;">
-            <input type="number" id="debug-steps" placeholder="Passi" style="width: 100px;">
-            <button style="background: var(--d); color: white; flex: 1;" onclick="inviaDebug()">Muovi Motore</button>
+            <input type="number" id="debug-steps" placeholder="Passi" style="width: 80px; padding: 8px; border:1px solid #ddd; border-radius:5px;">
+            <button style="background: var(--d); color: white; flex: 1;" onclick="sendCmd('DEBUG:'+document.getElementById('debug-steps').value)">Debug Move</button>
         </div>
     </div>
 
-    <div class="log" id="console">Log sistema...</div>
+    <div class="log" id="console">Log...</div>
 </div>
 
 <script>
@@ -127,151 +134,123 @@
     const mqttUser = "Nicola";
     const mqttPass = "k2gyf!_X95b9dUt";
     
-    const topicComando = "dispenser/comando";
-    const topicSetOrari = "dispenser/set/orari";
-    const topicSetMode = "dispenser/set/mode";
-    const topicDati = "dispenser/dati";
-
-    let espTimeLeft = 0; let jsTimer = null;  
+    const topics = {
+        cmd: "dispenser/comando",
+        orari: "dispenser/set/orari",
+        config: "dispenser/set/config",
+        dati: "dispenser/dati"
+    };
 
     const client = new Paho.MQTT.Client(mqttHost, Number(mqttPort), "Web-" + Date.now());
-    client.onConnectionLost = (r) => { updateStatus(false); log("Persa: " + r.errorMessage); };
+    client.onConnectionLost = (r) => { updateStatus(false); log("Persa"); };
     client.onMessageArrived = onMessage;
 
     client.connect({
         useSSL: true, userName: mqttUser, password: mqttPass,
-        onSuccess: () => { updateStatus(true); client.subscribe(topicDati); log("Connesso!"); },
-        onFailure: (m) => { updateStatus(false); log("Err: " + m.errorMessage); }
+        onSuccess: () => { updateStatus(true); client.subscribe(topics.dati); log("Connesso"); },
+        onFailure: () => updateStatus(false)
     });
 
     function onMessage(msg) {
-        if(msg.destinationName === topicDati) {
-            try {
-                const d = JSON.parse(msg.payloadString);
-                updateProgressBar(d.percentualeOggi);
-                if(document.activeElement.tagName !== "INPUT") {
-                    document.getElementById("t1").value = d.orario1;
-                    document.getElementById("t2").value = d.orario2;
-                    document.getElementById("t3").value = d.orario3;
-                }
-                updateTimerUI(d.autoActive, d.timeLeft, false);
-            } catch(e) { console.error(e); }
-        }
-    }
+        try {
+            const d = JSON.parse(msg.payloadString);
+            
+            // Barra
+            document.getElementById("food-bar").style.width = (d.percentualeOggi > 100 ? 100 : d.percentualeOggi) + "%";
+            document.getElementById("food-bar").innerText = d.percentualeOggi + "%";
+            
+            // Status Badge
+            const badge = document.getElementById("status-badge");
+            badge.innerText = d.activeStatus;
+            
+            if (d.activeStatus.includes("ATTIVO")) { badge.className = "mode-badge mode-active"; }
+            else if (d.activeStatus.includes("ATTESA")) { badge.className = "mode-badge mode-wait"; }
+            else { badge.className = "mode-badge mode-inactive"; }
 
-    function updateProgressBar(perc) {
-        const bar = document.getElementById("food-bar");
-        const txt = document.getElementById("perc-text");
-        const visualWidth = perc > 100 ? 100 : perc;
-        bar.style.width = visualWidth + "%";
-        bar.innerText = perc + "%";
-        txt.innerText = perc + "%";
-        if(perc > 100) bar.classList.add("progress-over");
-        else bar.classList.remove("progress-over");
-    }
-
-    function updateSliderLabel() {
-        const val = document.getElementById("manual-slider").value;
-        const lbl = document.getElementById("slider-desc");
-        if(val == "1") lbl.innerText = "Razione Intera (100%)";
-        else if(val == "2") lbl.innerText = "Mezza Razione (50%)";
-        else if(val == "3") lbl.innerText = "Un Terzo di Razione (33%)";
-    }
-
-    function inviaComandoManuale() {
-        const val = document.getElementById("manual-slider").value;
-        send(topicComando, "EROGA:" + val);
-    }
-    
-    function inviaDebug() {
-        const s = document.getElementById("debug-steps").value;
-        if(s>0) send(topicComando, "DEBUG:"+s);
-        else alert("Inserisci passi > 0");
-    }
-
-    function updateTimerUI(isActive, secondsLeft, isOptimistic) {
-        const display = document.getElementById("countdown");
-        const badge = document.getElementById("mode-badge");
-
-        if (jsTimer) clearInterval(jsTimer);
-
-        if (!isActive) {
-            badge.className = "mode-badge mode-off"; badge.innerText = "MANUALE (OFF)";
-            display.innerText = "OFF"; display.style.color = "#ff7675";
-        } else {
-            badge.className = "mode-badge mode-on"; badge.innerText = "AUTO ATTIVO";
-            if (secondsLeft <= 0 && !isOptimistic) {
-                display.innerText = "∞"; display.style.color = "#00cec9";
-            } else {
-                espTimeLeft = secondsLeft;
-                tickTock(); jsTimer = setInterval(tickTock, 1000);
+            // Orari (se non focus)
+            if(document.activeElement.tagName !== "INPUT") {
+                document.getElementById("t1").value = d.orario1;
+                document.getElementById("t2").value = d.orario2;
+                document.getElementById("t3").value = d.orario3;
             }
+            
+            // Update UI Date Inputs (Visualizza configurazione attuale)
+            if (d.stopTs > 0) {
+                 document.getElementById("date-stop").value = new Date(d.stopTs * 1000).toISOString().split('T')[0];
+            }
+            if (d.vacStart > 0) {
+                 document.getElementById("vac-start").value = new Date(d.vacStart * 1000).toISOString().split('T')[0];
+                 document.getElementById("vac-end").value = new Date(d.vacEnd * 1000).toISOString().split('T')[0];
+            }
+
+        } catch(e) {}
+    }
+
+    // --- LOGICA DATE ---
+    function setStopDate() {
+        const val = document.getElementById("date-stop").value;
+        if(!val) return alert("Scegli una data");
+        // Imposta alle 23:59:59 di quel giorno
+        const ts = Math.floor(new Date(val).setHours(23,59,59,0) / 1000);
+        send(topics.config, "STOP:" + ts);
+    }
+
+    function setVacation() {
+        const v1 = document.getElementById("vac-start").value;
+        const v2 = document.getElementById("vac-end").value;
+        if(!v1 || !v2) return alert("Scegli entrambe le date");
+        
+        // Start: 00:00 del primo giorno
+        const ts1 = Math.floor(new Date(v1).setHours(0,0,0,0) / 1000);
+        // End: 23:59 dell'ultimo giorno
+        const ts2 = Math.floor(new Date(v2).setHours(23,59,59,0) / 1000);
+        
+        if(ts2 < ts1) return alert("La data fine deve essere dopo l'inizio");
+        
+        send(topics.config, "VAC:" + ts1 + "," + ts2);
+    }
+
+    function resetDates() {
+        if(confirm("Vuoi cancellare le date e tornare SEMPRE ATTIVO?")) {
+            send(topics.config, "RESET_DATES");
+            document.getElementById("date-stop").value = "";
+            document.getElementById("vac-start").value = "";
+            document.getElementById("vac-end").value = "";
         }
     }
 
-    function tickTock() {
-        if (espTimeLeft <= 0) { if(espTimeLeft!==-999) document.getElementById("countdown").innerText = "00:00:00"; return; }
-        espTimeLeft--; 
-        const h = Math.floor(espTimeLeft/3600); const m = Math.floor((espTimeLeft%3600)/60); const s = espTimeLeft%60;
-        document.getElementById("countdown").innerText = `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+    // --- UI TABS ---
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.date-panel').forEach(p => p.classList.remove('show'));
+        
+        document.getElementById('tab-' + tab).classList.add('active');
+        document.getElementById('panel-' + tab).classList.add('show');
     }
 
-    function setMode(mode) {
-        if(mode === 'OFF_NOW') updateTimerUI(false, 0, true);
-        else if (mode === 'ON_ALWAYS') { updateTimerUI(true, 0, true); document.getElementById("countdown").innerText = "∞"; }
-        else if (mode === 'OFF_TOMORROW') updateTimerUI(true, 99999, true);
-        send(topicSetMode, mode);
+    // --- ALTRI COMANDI ---
+    function resetStats() { if(confirm("Azzera statistiche?")) sendCmd("RESET_STATS"); }
+    function sendCmd(c) { send(topics.cmd, c); }
+    
+    function updateLabel() {
+        const v = document.getElementById("manual-slider").value;
+        const l = document.getElementById("slider-desc");
+        if(v==1) l.innerText="Intera"; else if(v==2) l.innerText="Metà"; else l.innerText="Un Terzo";
     }
 
     function salvaOrari() {
-        const v1 = document.getElementById("t1").value;
-        const v2 = document.getElementById("t2").value;
-        const v3 = document.getElementById("t3").value;
-        const box = document.getElementById("orari-box");
-        const errorDiv = document.getElementById("error-msg");
-
-        errorDiv.style.display = "none";
-        
-        // VALIDAZIONE 1: Tutti vuoti
-        if (!v1 && !v2 && !v3) { showError("⚠️ Errore: Inserisci almeno un orario!", box, errorDiv); return; }
-        
-        // VALIDAZIONE 2: Duplicati
-        const validi = [v1,v2,v3].filter(o=>o!=="");
-        if (new Set(validi).size !== validi.length) { showError("⚠️ Errore: Orari duplicati!", box, errorDiv); return; }
-
-        // VALIDAZIONE 3: Ordine Cronologico (Nuovo!)
-        // Se v1 esiste e v2 esiste, v1 deve essere < v2
-        if (v1 && v2 && v1 >= v2) { showError("⚠️ Errore: Pasto 1 deve essere prima di Pasto 2!", box, errorDiv); return; }
-        if (v2 && v3 && v2 >= v3) { showError("⚠️ Errore: Pasto 2 deve essere prima di Pasto 3!", box, errorDiv); return; }
-        if (v1 && v3 && v1 >= v3) { showError("⚠️ Errore: Pasto 1 deve essere prima di Pasto 3!", box, errorDiv); return; }
-
-        const p1 = v1||"--:--"; const p2 = v2||"--:--"; const p3 = v3||"--:--";
-        send(topicSetOrari, `${p1},${p2},${p3}`);
-
-        // UI OPTIMISTIC UPDATE: Aggiorna subito lo stato a ON
-        updateTimerUI(true, 0, true);
-        document.getElementById("countdown").innerText = "∞"; 
+        const t1 = document.getElementById("t1").value || "--:--";
+        const t2 = document.getElementById("t2").value || "--:--";
+        const t3 = document.getElementById("t3").value || "--:--";
+        send(topics.orari, `${t1},${t2},${t3}`);
     }
 
-    function showError(msg, box, txt) {
-        txt.innerText = msg; txt.style.display = "block";
-        box.classList.remove("error-border"); void box.offsetWidth; box.classList.add("error-border");
-    }
-
-    function send(t, m) {
-        if(client.isConnected()) {
-            const msg = new Paho.MQTT.Message(m); msg.destinationName = t; client.send(msg);
-        } else alert("Non connesso!");
-    }
-
-    function updateStatus(ok) {
-        const dot = document.getElementById("conn-dot"); const txt = document.getElementById("conn-text");
-        const btn = document.getElementById("btn-eroga");
-        if(ok) { dot.style.background = "#28a745"; txt.innerText = "Online"; btn.disabled = false; }
-        else { dot.style.background = "red"; txt.innerText = "Offline"; btn.disabled = true; }
-    }
+    function send(t, m) { if(client.isConnected()) { const msg = new Paho.MQTT.Message(m); msg.destinationName=t; client.send(msg); } }
+    function updateStatus(ok) { document.getElementById("conn-text").innerText = ok ? "Connesso" : "Offline"; document.getElementById("btn-eroga").disabled = !ok; }
     function log(m) { document.getElementById("console").innerHTML = "> "+m; }
 </script>
 </body>
 </html>
+
+
 
