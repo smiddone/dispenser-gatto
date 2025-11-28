@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>Dispenser Gatto V12</title>
+    <title>Dispenser Gatto V13</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
-    <!-- Font Carino -->
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
     
     <style>
@@ -13,16 +12,16 @@
             /* Palette Pastello */
             --bg: #f0f4f8; 
             --card: #ffffff;
-            --primary: #74b9ff; /* Blu Pastello */
+            --primary: #74b9ff; 
             --primary-dark: #0984e3;
-            --success: #55efc4; /* Verde Menta */
+            --success: #55efc4; 
             --success-dark: #00b894;
-            --danger: #ff7675; /* Rosso Corallo */
+            --danger: #ff7675; 
             --danger-dark: #d63031;
-            --warning: #ffeaa7; /* Giallo Crema */
+            --warning: #ffeaa7; 
             --text: #2d3436;
             --text-light: #636e72;
-            --purple: #a29bfe; /* Viola Pastello */
+            --purple: #a29bfe; 
         }
 
         body { font-family: 'Quicksand', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--text); }
@@ -164,17 +163,18 @@
     <!-- 3. EROGAZIONE MANUALE -->
     <h2>Manuale</h2>
     <div class="manual-box">
-        <span id="slider-desc" style="font-weight: 800; color: var(--primary-dark); font-size: 1.2rem; display: block;">Razione Intera</span>
+        <span id="slider-desc" style="font-weight: 800; color: var(--primary-dark); font-size: 1.2rem; display: block;">1/3 di Razione (33%)</span>
         
+        <!-- Slider Invertito: Sinistra=1/3 (Valore 1), Destra=1/1 (Valore 3) -->
         <input type="range" id="manual-slider" min="1" max="3" value="1" oninput="updateLabel()">
         
         <div class="range-values">
-            <span>1/1 (100%)</span>
-            <span>1/2 (50%)</span>
             <span>1/3 (33%)</span>
+            <span>1/2 (50%)</span>
+            <span>1/1 (100%)</span>
         </div>
         
-        <button id="btn-eroga" class="btn-main" onclick="sendCmd('EROGA:'+document.getElementById('manual-slider').value)" disabled>
+        <button id="btn-eroga" class="btn-main" onclick="erogaManuale()" disabled>
             🍖 EROGA SUBITO
         </button>
     </div>
@@ -299,10 +299,28 @@
     function resetStats() { if(confirm("Azzera statistiche?")) sendCmd("RESET_STATS"); }
     function sendCmd(c) { send(topics.cmd, c); }
     
+    // LOGICA SLIDER INVERTITO
     function updateLabel() {
-        const v = document.getElementById("manual-slider").value;
+        const v = parseInt(document.getElementById("manual-slider").value);
         const l = document.getElementById("slider-desc");
-        if(v==1) l.innerText="Razione Intera"; else if(v==2) l.innerText="Mezza Razione"; else l.innerText="Un Terzo di Razione";
+        // v=1 (Sinistra) -> 1/3
+        // v=2 (Centro) -> 1/2
+        // v=3 (Destra) -> 1/1
+        if(v===1) l.innerText="1/3 di Razione (33%)"; 
+        else if(v===2) l.innerText="1/2 di Razione (50%)"; 
+        else l.innerText="Razione Intera (100%)";
+    }
+
+    function erogaManuale() {
+        const sliderVal = parseInt(document.getElementById("manual-slider").value);
+        // Conversione per l'ESP32 che si aspetta il DIVISORE:
+        // Se Slider=1 (voglio 1/3) -> Divisore=3
+        // Se Slider=2 (voglio 1/2) -> Divisore=2
+        // Se Slider=3 (voglio 1/1) -> Divisore=1
+        // Formula: Divisore = 4 - SliderVal
+        const divisore = 4 - sliderVal;
+        
+        sendCmd("EROGA:" + divisore);
     }
 
     function salvaOrari() {
@@ -331,6 +349,9 @@
     }
     
     function log(m) { document.getElementById("console").innerHTML = "> "+m; }
+    
+    // Inizializza Label al caricamento
+    window.onload = updateLabel;
 </script>
 </body>
 </html>
