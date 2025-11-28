@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>Dispenser Gatto V16</title>
+    <title>Dispenser Gatto V17</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
     
@@ -85,7 +85,7 @@
         /* ORARI INPUTS - GRID PERFETTA */
         .time-inputs-container { 
             display: grid; 
-            grid-template-columns: 1fr 1fr 1fr; /* 3 colonne uguali */
+            grid-template-columns: 1fr 1fr 1fr; /* 3 colonne uguali su Desktop */
             gap: 10px; 
             margin-bottom: 15px; 
         }
@@ -107,10 +107,10 @@
         .btn-reset { background: transparent; color: var(--danger); border: 2px solid var(--danger-dark); margin-top: 10px; width: 100%; opacity: 0.8; }
         .btn-reset:hover { opacity: 1; background: #fff0f0; }
 
-        /* TASTI VIOLA (SCURI E BEN VISIBILI) */
+        /* TASTI VIOLA */
         .btn-purple { 
-            background: var(--purple-dark); /* Viola Scuro */
-            color: #ffffff; /* Testo Bianco */
+            background: var(--purple-dark); 
+            color: #ffffff; 
             width: 100%; margin-top: 10px; 
             box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3); 
         }
@@ -131,6 +131,12 @@
             .mode-badge { font-size: 0.75rem; min-width: auto; padding: 6px 10px; }
             .status-title { font-size: 1rem; }
             .container { padding: 15px; }
+            
+            /* FIX ORARI MOBILE: Uno sotto l'altro per stare nello schermo */
+            .time-inputs-container { 
+                grid-template-columns: 1fr; /* Una singola colonna */
+                gap: 10px; 
+            }
         }
     </style>
 </head>
@@ -372,4 +378,5 @@
 </script>
 </body>
 </html>
+
 
