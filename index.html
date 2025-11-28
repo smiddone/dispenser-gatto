@@ -41,90 +41,120 @@
         .mode-inactive { background: var(--danger); color: #fff; }
         .mode-wait { background: var(--warning); color: #5d5438; }
 
-        /* PROGRESS BAR */
-        .progress-container { background: #dfe6e9; border-radius: 25px; height: 35px; margin: 15px 0; overflow: hidden; position: relative; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
-        .progress-bar { height: 100%; background: linear-gradient(90deg, var(--success), var(--success-dark)); width: 0%; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
-        .progress-over { background: linear-gradient(90deg, var(--purple), #6c5ce7); } 
+        /* PRO<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>Dispenser Gatto V15</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { 
+            --bg: #f4f8fb; 
+            --card: #ffffff;
+            --primary: #74b9ff; 
+            --success: #00b894;
+            --success-light: #55efc4;
+            --danger: #ff7675; 
+            --warning: #ffeaa7; 
+            --text: #2d3436;
+            --text-light: #b2bec3;
+            --purple: #a29bfe; 
+            --purple-dark: #6c5ce7;
+        }
+
+        body { font-family: 'Quicksand', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: var(--text); }
+        .container { max-width: 500px; margin: 0 auto; background: var(--card); border-radius: 25px; padding: 25px; box-shadow: 0 15px 35px rgba(116, 185, 255, 0.1); }
         
-        .reset-link { font-size: 0.8rem; color: var(--text-light); text-decoration: none; cursor: pointer; float: right; padding: 5px 10px; border-radius: 5px; transition: background 0.2s; }
-        .reset-link:hover { background: #f1f2f6; color: var(--danger); }
+        h2 { border-bottom: 2px dashed #f1f2f6; padding-bottom: 10px; color: var(--text-light); font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 35px; text-align: center; font-family: 'Fredoka', sans-serif;}
+        
+        /* HEADER CONNESSIONE */
+        .conn-wrapper { display: flex; align-items: center; justify-content: center; margin-bottom: 20px; background: #fff; border: 1px solid #eee; padding: 6px 15px; border-radius: 50px; width: fit-content; margin-left: auto; margin-right: auto; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .conn-dot { height: 10px; width: 10px; border-radius: 50%; display: inline-block; margin-right: 8px; transition: background 0.3s; }
+        .conn-text { font-size: 0.8rem; font-weight: bold; color: var(--text-light); }
+        
+        /* STATUS BADGE */
+        .status-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #fff; border: 2px solid #f1f2f6; padding: 12px 15px; border-radius: 18px; gap: 15px; }
+        .status-title { font-family: 'Fredoka', sans-serif; font-weight: 600; font-size: 1.2rem; color: var(--text); }
+        .mode-badge { padding: 6px 12px; border-radius: 10px; font-weight: 700; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; text-align: center; white-space: nowrap; min-width: 80px; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .mode-active { background: var(--success); color: #fff; }
+        .mode-inactive { background: var(--danger); color: #fff; }
+        .mode-wait { background: var(--warning); color: #635e4e; }
+
+        /* PROGRESS BAR */
+        .progress-container { background: #f1f2f6; border-radius: 15px; height: 32px; margin: 15px 0; overflow: hidden; position: relative; border: 1px solid #eee; }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, var(--success-light), var(--success)); width: 0%; transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; text-shadow: 0 1px 1px rgba(0,0,0,0.1); font-size: 0.85rem;}
+        .progress-over { background: linear-gradient(90deg, var(--purple), var(--purple-dark)) !important; } 
+        
+        .reset-link { font-size: 0.8rem; color: var(--text-light); text-decoration: none; cursor: pointer; float: right; padding: 5px 10px; border-radius: 5px; transition: color 0.2s; }
+        .reset-link:hover { color: var(--danger); }
 
         /* TABS */
-        .tabs { display: flex; gap: 12px; margin-bottom: 15px; }
-        .tab-btn { flex: 1; padding: 12px; border: 2px solid transparent; background: #f1f2f6; cursor: pointer; border-radius: 12px; font-size: 0.95rem; font-weight: bold; color: var(--text-light); transition: all 0.2s; text-align: center;}
-        .tab-btn.active { background: #fff; border-color: var(--primary); color: var(--primary); box-shadow: 0 4px 10px rgba(116, 185, 255, 0.2); }
+        .tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+        .tab-btn { flex: 1; padding: 10px; border: 2px solid transparent; background: #f4f8fb; cursor: pointer; border-radius: 12px; font-size: 0.9rem; font-weight: bold; color: var(--text-light); transition: all 0.2s; text-align: center;}
+        .tab-btn.active { background: #fff; border-color: var(--primary); color: var(--primary); box-shadow: 0 4px 15px rgba(116, 185, 255, 0.15); }
 
-        .date-panel { background: #f8fbff; padding: 20px; border-radius: 15px; border: 1px solid #e1e8ef; display: none; margin-bottom: 10px;}
-        .date-panel.show { display: block; animation: fadeIn 0.3s; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-
-        .date-label { display: block; font-weight: bold; color: var(--primary-dark); margin-bottom: 8px; font-size: 0.9rem; }
+        .date-panel { background: #fdfdfd; padding: 20px; border-radius: 18px; border: 2px solid #f0f4f8; display: none; margin-bottom: 10px;}
+        .date-panel.show { display: block; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        .date-label { display: block; font-weight: bold; color: var(--primary-dark); margin-bottom: 12px; font-size: 0.9rem; }
 
         /* MANUAL BOX */
-        .manual-box { background: #eef5ff; padding: 25px; border-radius: 20px; text-align: center; border: 2px solid #dbe9ff; }
-        
-        input[type=range] { width: 100%; margin: 20px 0; accent-color: var(--primary); cursor: pointer; }
+        .manual-box { background: #eef6ff; padding: 20px; border-radius: 20px; text-align: center; border: 2px solid #e1ecf9; }
+        input[type=range] { width: 100%; margin: 20px 0; accent-color: var(--primary); cursor: pointer; height: 6px; background: #dfe6e9; border-radius: 5px; }
         .range-values { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-light); font-weight: bold; margin-bottom: 10px; }
         
         /* ORARI INPUTS */
-        .time-inputs-container { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 15px; }
-        
+        .time-inputs-container { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 15px; }
         input[type="time"], input[type="date"] { 
-            padding: 12px; border: 2px solid #dfe6e9; border-radius: 12px; 
+            padding: 10px; border: 2px solid #f1f2f6; border-radius: 12px; 
             font-family: 'Quicksand', sans-serif; font-weight: bold; color: var(--text); 
-            background: #fff; width: 100%; box-sizing: border-box; transition: border-color 0.3s; outline: none;
-            text-align: center;
+            background: #fff; width: 100%; box-sizing: border-box; transition: all 0.3s; outline: none;
+            text-align: center; font-size: 1rem;
         }
-        input[type="time"]:focus, input[type="date"]:focus { border-color: var(--primary); }
+        input[type="time"]:focus, input[type="date"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(116, 185, 255, 0.2); }
 
         /* BUTTONS */
-        button { border: none; border-radius: 12px; font-weight: bold; cursor: pointer; padding: 14px; transition: transform 0.1s, box-shadow 0.2s; font-family: 'Quicksand', sans-serif; }
-        button:active { transform: scale(0.97); }
+        button { border: none; border-radius: 12px; font-weight: bold; cursor: pointer; padding: 14px; transition: transform 0.1s, box-shadow 0.2s; font-family: 'Fredoka', sans-serif; letter-spacing: 0.5px;}
+        button:active { transform: scale(0.96); }
         
-        .btn-main { background: var(--primary); color: white; width: 100%; font-size: 1.1rem; box-shadow: 0 4px 10px rgba(116, 185, 255, 0.4); margin-top: 15px; }
-        .btn-main:disabled { background: #b2bec3; box-shadow: none; cursor: not-allowed; }
+        .btn-main { background: var(--primary); color: white; width: 100%; font-size: 1.1rem; box-shadow: 0 5px 15px rgba(116, 185, 255, 0.4); margin-top: 10px; }
+        .btn-main:disabled { background: #cbd5e0; box-shadow: none; cursor: not-allowed; color: #fff; }
         
-        .btn-apply { background: var(--text-light); color: white; width: 100%; font-size: 0.9rem; margin-top: 10px;}
-        .btn-reset { background: transparent; color: var(--danger); border: 2px solid var(--danger-dark); margin-top: 10px; width: 100%; opacity: 0.7; }
-        .btn-reset:hover { opacity: 1; background: #fff5f5; }
+        .btn-reset { background: transparent; color: var(--danger); border: 2px solid var(--danger-dark); margin-top: 10px; width: 100%; opacity: 0.8; }
+        .btn-reset:hover { opacity: 1; background: #fff0f0; }
 
-        .btn-vacation { background: var(--purple); color: white; width: 100%; margin-top: 10px; box-shadow: 0 4px 10px rgba(162, 155, 254, 0.4); }
+        /* TASTI VIOLA */
+        .btn-purple { background: var(--purple-dark); color: white; width: 100%; margin-top: 10px; box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3); }
 
-        .input-box { background: #fff; border: 1px solid #eee; padding: 20px; border-radius: 20px; margin-top: 10px;}
-
-        /* DEBUG */
-        .debug-container { background: #fff0f0; padding: 15px; border-radius: 15px; margin-top: 30px; border: 1px solid #ffcccc; display: flex; gap: 10px; align-items: center;}
-        
-        .log { background: #2d3436; padding: 15px; font-family: monospace; font-size: 0.75rem; color: #55efc4; height: 80px; overflow-y: auto; border-radius: 12px; margin-top: 25px; }
+        .input-box { background: #fff; border: 2px solid #f4f8fb; padding: 20px; border-radius: 20px; margin-top: 10px;}
+        .debug-container { background: #fff5f5; padding: 15px; border-radius: 15px; margin-top: 30px; border: 2px dashed #ffdcdc; display: flex; gap: 10px; align-items: center;}
+        .log { background: #2d3436; padding: 15px; font-family: monospace; font-size: 0.75rem; color: #55efc4; height: 80px; overflow-y: auto; border-radius: 12px; margin-top: 25px; border: 2px solid #2d3436;}
     </style>
 </head>
 <body>
 
 <div class="container">
-    <!-- CONNESSIONE -->
     <div class="conn-wrapper">
         <span id="conn-dot" class="conn-dot" style="background: #b2bec3;"></span>
         <span id="conn-text" class="conn-text">Connessione...</span>
     </div>
 
-    <!-- 1. BARRA CIBO -->
     <div>
         <div style="display: flex; justify-content: space-between; align-items: baseline;">
-            <span style="font-weight: bold; color: var(--text-light);">Mangiato Oggi</span>
+            <span style="font-weight: bold; color: var(--text-light); font-size: 0.9rem;">Mangiato Oggi</span>
             <span class="reset-link" onclick="resetStats()">↺ Azzera</span>
         </div>
-        
-        <div class="progress-container">
-            <div id="food-bar" class="progress-bar">0%</div>
-        </div>
+        <div class="progress-container"><div id="food-bar" class="progress-bar">0%</div></div>
     </div>
 
-    <!-- 2. STATUS AUTOMAZIONE -->
     <div style="margin-top: 30px;">
         <div class="status-header">
             <div style="display: flex; flex-direction: column;">
-                <span style="font-size: 0.8rem; color: var(--text-light); text-transform: uppercase;">Stato Sistema</span>
-                <span style="font-weight: bold; font-size: 1.1rem;">Automazione</span>
+                <span style="font-size: 0.75rem; color: var(--text-light); text-transform: uppercase; font-weight: bold;">Stato Sistema</span>
+                <span class="status-title">Automazione</span>
             </div>
             <span id="status-badge" class="mode-badge mode-wait">--</span>
         </div>
@@ -134,63 +164,43 @@
             <div class="tab-btn" onclick="switchTab('vacation')" id="tab-vacation">🌴 Vacanza</div>
         </div>
 
-        <!-- Pannello Scadenza -->
         <div id="panel-single" class="date-panel show">
             <label class="date-label">Esegui automaticamente fino al:</label>
             <input type="date" id="date-stop">
-            <button class="btn-apply" onclick="setStopDate()">Imposta Data Stop</button>
+            <!-- Tasto VIOLA -->
+            <button class="btn-purple" onclick="setStopDate()">Imposta Data Stop</button>
             <button class="btn-reset" onclick="resetDates()">Cancella (Sempre ON)</button>
         </div>
 
-        <!-- Pannello Vacanza -->
         <div id="panel-vacation" class="date-panel">
             <label class="date-label">Attiva SOLO in questo periodo:</label>
             <div style="display:flex; gap:10px; margin-bottom: 10px;">
-                <div style="flex:1">
-                    <span style="font-size:0.7rem; color:var(--text-light); display:block; margin-bottom:3px;">DAL</span>
-                    <input type="date" id="vac-start">
-                </div>
-                <div style="flex:1">
-                    <span style="font-size:0.7rem; color:var(--text-light); display:block; margin-bottom:3px;">AL</span>
-                    <input type="date" id="vac-end">
-                </div>
+                <div style="flex:1"><span style="font-size:0.7rem; color:var(--text-light); display:block; margin-bottom:5px; font-weight:bold;">DAL</span><input type="date" id="vac-start"></div>
+                <div style="flex:1"><span style="font-size:0.7rem; color:var(--text-light); display:block; margin-bottom:5px; font-weight:bold;">AL</span><input type="date" id="vac-end"></div>
             </div>
-            <button class="btn-vacation" onclick="setVacation()">Salva Vacanza</button>
+            <!-- Tasto VIOLA -->
+            <button class="btn-purple" onclick="setVacation()">Salva Vacanza</button>
             <button class="btn-reset" onclick="resetDates()">Cancella Date</button>
         </div>
     </div>
 
-    <!-- 3. EROGAZIONE MANUALE -->
     <h2>Manuale</h2>
     <div class="manual-box">
-        <span id="slider-desc" style="font-weight: 800; color: var(--primary-dark); font-size: 1.2rem; display: block;">1/3 di Razione (33%)</span>
-        
-        <!-- Slider Invertito: Sinistra=1/3 (Valore 1), Destra=1/1 (Valore 3) -->
+        <span id="slider-desc" style="font-weight: 800; color: var(--primary-dark); font-size: 1.2rem; display: block; font-family: 'Fredoka', sans-serif;">1/3 di Razione (33%)</span>
         <input type="range" id="manual-slider" min="1" max="3" value="1" oninput="updateLabel()">
-        
-        <div class="range-values">
-            <span>1/3 (33%)</span>
-            <span>1/2 (50%)</span>
-            <span>1/1 (100%)</span>
-        </div>
-        
-        <button id="btn-eroga" class="btn-main" onclick="erogaManuale()" disabled>
-            🍖 EROGA SUBITO
-        </button>
+        <div class="range-values"><span>1/3 (33%)</span><span>1/2 (50%)</span><span>1/1 (100%)</span></div>
+        <button id="btn-eroga" class="btn-main" onclick="erogaManuale()" disabled>🍖 EROGA SUBITO</button>
     </div>
 
-    <!-- 4. ORARI -->
     <div class="input-box">
-        <div style="margin-bottom: 15px; font-weight: bold; color: var(--text-light); text-align: center;">⏰ Orari Giornalieri</div>
+        <div style="margin-bottom: 20px; font-weight: bold; color: var(--text-light); text-align: center; font-size: 1rem;">⏰ Orari Giornalieri</div>
         <div class="time-inputs-container">
-            <input type="time" id="t1"> 
-            <input type="time" id="t2"> 
-            <input type="time" id="t3">
+            <input type="time" id="t1"> <input type="time" id="t2"> <input type="time" id="t3">
         </div>
-        <button class="btn-apply" style="background: var(--text); margin-top: 5px;" onclick="salvaOrari()">Salva Orari</button>
+        <!-- Tasto VIOLA -->
+        <button class="btn-purple" onclick="salvaOrari()">Salva Orari</button>
     </div>
 
-    <!-- 5. DEBUG -->
     <div class="debug-container">
         <span style="font-weight: bold; color: var(--danger);">🔧 Debug</span>
         <input type="number" id="debug-steps" placeholder="Passi" style="width: 80px; padding: 10px; border:1px solid #ffcccc; border-radius:8px;">
@@ -219,138 +229,102 @@
 
     client.connect({
         useSSL: true, userName: mqttUser, password: mqttPass,
-        onSuccess: () => { updateStatus(true); client.subscribe(topics.dati); log("Connesso"); },
+        onSuccess: () => { 
+            updateStatus(true); 
+            client.subscribe(topics.dati); 
+            log("Connesso - Richiedo dati..."); 
+            // Invia SYNC appena connesso!
+            sendCmd("SYNC");
+        },
         onFailure: () => updateStatus(false)
     });
 
     function onMessage(msg) {
         try {
             const d = JSON.parse(msg.payloadString);
-            
-            // Barra
             const p = d.percentualeOggi;
             const bar = document.getElementById("food-bar");
             bar.style.width = (p > 100 ? 100 : p) + "%";
             bar.innerText = p + "%";
+            if(p > 100) bar.classList.add("progress-over"); else bar.classList.remove("progress-over");
             
-            if(p > 100) bar.classList.add("progress-over");
-            else bar.classList.remove("progress-over");
-            
-            // Status Badge
             const badge = document.getElementById("status-badge");
             badge.innerText = d.activeStatus;
-            badge.className = "mode-badge"; // Reset classes
-            
-            if (d.activeStatus.includes("ATTIVO")) { badge.classList.add("mode-active"); }
-            else if (d.activeStatus.includes("ATTESA")) { badge.classList.add("mode-wait"); }
-            else { badge.classList.add("mode-inactive"); }
+            badge.className = "mode-badge"; 
+            if (d.activeStatus.includes("ATTIVO")) badge.classList.add("mode-active");
+            else if (d.activeStatus.includes("ATTESA")) badge.classList.add("mode-wait");
+            else badge.classList.add("mode-inactive");
 
-            // Orari
             if(document.activeElement.tagName !== "INPUT") {
                 document.getElementById("t1").value = d.orario1;
                 document.getElementById("t2").value = d.orario2;
                 document.getElementById("t3").value = d.orario3;
             }
-            
-            // Date inputs
             if (d.stopTs > 0) document.getElementById("date-stop").value = new Date(d.stopTs * 1000).toISOString().split('T')[0];
             if (d.vacStart > 0) {
                  document.getElementById("vac-start").value = new Date(d.vacStart * 1000).toISOString().split('T')[0];
                  document.getElementById("vac-end").value = new Date(d.vacEnd * 1000).toISOString().split('T')[0];
             }
-
         } catch(e) {}
     }
 
-    // --- LOGICA DATE ---
     function setStopDate() {
         const val = document.getElementById("date-stop").value;
         if(!val) return alert("Scegli una data");
         const ts = Math.floor(new Date(val).setHours(23,59,59,0) / 1000);
         send(topics.config, "STOP:" + ts);
     }
-
     function setVacation() {
         const v1 = document.getElementById("vac-start").value;
         const v2 = document.getElementById("vac-end").value;
-        if(!v1 || !v2) return alert("Scegli entrambe le date");
+        if(!v1 || !v2) return alert("Scegli date");
         const ts1 = Math.floor(new Date(v1).setHours(0,0,0,0) / 1000);
         const ts2 = Math.floor(new Date(v2).setHours(23,59,59,0) / 1000);
-        if(ts2 < ts1) return alert("La data fine deve essere dopo l'inizio");
+        if(ts2 < ts1) return alert("Errore date");
         send(topics.config, "VAC:" + ts1 + "," + ts2);
     }
-
     function resetDates() {
-        if(confirm("Vuoi cancellare le date?")) {
+        if(confirm("Cancella date?")) {
             send(topics.config, "RESET_DATES");
             document.getElementById("date-stop").value = "";
             document.getElementById("vac-start").value = "";
             document.getElementById("vac-end").value = "";
         }
     }
-
     function switchTab(tab) {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.date-panel').forEach(p => p.classList.remove('show'));
         document.getElementById('tab-' + tab).classList.add('active');
         document.getElementById('panel-' + tab).classList.add('show');
     }
-
-    function resetStats() { if(confirm("Azzera statistiche?")) sendCmd("RESET_STATS"); }
+    function resetStats() { if(confirm("Azzera?")) sendCmd("RESET_STATS"); }
     function sendCmd(c) { send(topics.cmd, c); }
     
-    // LOGICA SLIDER INVERTITO
     function updateLabel() {
         const v = parseInt(document.getElementById("manual-slider").value);
         const l = document.getElementById("slider-desc");
-        // v=1 (Sinistra) -> 1/3
-        // v=2 (Centro) -> 1/2
-        // v=3 (Destra) -> 1/1
-        if(v===1) l.innerText="1/3 di Razione (33%)"; 
-        else if(v===2) l.innerText="1/2 di Razione (50%)"; 
-        else l.innerText="Razione Intera (100%)";
+        if(v===1) l.innerText="1/3 di Razione (33%)"; else if(v===2) l.innerText="1/2 di Razione (50%)"; else l.innerText="Razione Intera (100%)";
     }
-
     function erogaManuale() {
-        const sliderVal = parseInt(document.getElementById("manual-slider").value);
-        // Conversione per l'ESP32 che si aspetta il DIVISORE:
-        // Se Slider=1 (voglio 1/3) -> Divisore=3
-        // Se Slider=2 (voglio 1/2) -> Divisore=2
-        // Se Slider=3 (voglio 1/1) -> Divisore=1
-        // Formula: Divisore = 4 - SliderVal
-        const divisore = 4 - sliderVal;
-        
+        const divisore = 4 - parseInt(document.getElementById("manual-slider").value);
         sendCmd("EROGA:" + divisore);
     }
-
     function salvaOrari() {
         const t1 = document.getElementById("t1").value || "--:--";
         const t2 = document.getElementById("t2").value || "--:--";
         const t3 = document.getElementById("t3").value || "--:--";
         send(topics.orari, `${t1},${t2},${t3}`);
     }
-
     function send(t, m) { if(client.isConnected()) { const msg = new Paho.MQTT.Message(m); msg.destinationName=t; client.send(msg); } }
     
     function updateStatus(ok) { 
         const dot = document.getElementById("conn-dot");
         const txt = document.getElementById("conn-text");
         const btn = document.getElementById("btn-eroga");
-        
-        if(ok) {
-            dot.style.background = "var(--success)";
-            txt.innerText = "Connesso";
-            btn.disabled = false;
-        } else {
-            dot.style.background = "var(--danger)";
-            txt.innerText = "Offline";
-            btn.disabled = true;
-        }
+        if(ok) { dot.style.background = "var(--success)"; txt.innerText = "Connesso"; btn.disabled = false; }
+        else { dot.style.background = "var(--danger)"; txt.innerText = "Offline"; btn.disabled = true; }
     }
-    
     function log(m) { document.getElementById("console").innerHTML = "> "+m; }
-    
-    // Inizializza Label al caricamento
     window.onload = updateLabel;
 </script>
 </body>
